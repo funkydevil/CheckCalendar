@@ -44,63 +44,61 @@ struct DayCalendarView: View {
             )
         }
         .background(AppTheme.canvas)
-        .alert("Перенести на завтра?", isPresented: $showMoveConfirmation) {
-            Button("Отмена", role: .cancel) { }
-            Button("Перенести \(unfinishedCount)") { moveUnfinished() }
+        .alert("Move to Tomorrow?", isPresented: $showMoveConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Move \(unfinishedCount)") { moveUnfinished() }
         } message: {
-            Text("Невыполненные задачи останутся в истории этого дня и появятся завтра как новые пункты.")
+            Text("Unfinished tasks will remain in this day's history and appear tomorrow as new items.")
         }
     }
 
     private var header: some View {
         VStack(spacing: 9) {
             HStack(alignment: .center, spacing: 8) {
-                ZStack(alignment: .topLeading) {
-                    HStack(spacing: 9) {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(AppTheme.accent)
-
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(selectedDate.russianHeaderDay.capitalizingFirstLetter)
-                                .font(.headline)
-                                .lineLimit(1)
-                                .popover(
-                                    isPresented: $showDatePicker,
-                                    attachmentAnchor: .rect(.bounds),
-                                    arrowEdge: .top
-                                ) {
-                                    datePickerPopover
-                                        .presentationCompactAdaptation(.popover)
-                                }
-                            Text(summaryLine)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
+                HStack(spacing: 9) {
                     Button {
                         showDatePicker.toggle()
                     } label: {
-                        Color.clear
-                            .contentShape(Rectangle())
+                        Image(systemName: "calendar")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(AppTheme.accent)
                     }
                     .buttonStyle(.plain)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 34)
-                    .accessibilityHidden(true)
+                    .help("Choose date")
+                    .accessibilityLabel("Choose date")
+                    .accessibilityIdentifier("calendar-icon-button")
+
+                    VStack(alignment: .leading, spacing: 1) {
+                        Button {
+                            showDatePicker.toggle()
+                        } label: {
+                            Text(selectedDate.headerDay)
+                                .font(.headline)
+                                .lineLimit(1)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Choose date")
+                        .accessibilityLabel("Choose date: \(selectedDate.headerDay)")
+                        .accessibilityIdentifier("date-popover-button")
+                        .popover(
+                            isPresented: $showDatePicker,
+                            attachmentAnchor: .rect(.bounds),
+                            arrowEdge: .top
+                        ) {
+                            datePickerPopover
+                                .presentationCompactAdaptation(.popover)
+                        }
+
+                        Text(summaryLine)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 10)
                 .layoutPriority(1)
-                .contentShape(Rectangle())
-                .help("Выбрать дату")
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(selectedDate.russianHeaderDay.capitalizingFirstLetter) \(summaryLine)")
-                .accessibilityAddTraits(.isButton)
-                .accessibilityAction { showDatePicker.toggle() }
-                .accessibilityIdentifier("date-popover-button")
 
                 if let movedMessage {
                     Image(systemName: "arrow.right.circle.fill")
@@ -113,7 +111,7 @@ struct DayCalendarView: View {
                     Button { changeDay(by: -1) } label: {
                         Image(systemName: "chevron.left")
                     }
-                    .help("Предыдущий день")
+                    .help("Previous day")
 
                     Button {
                         selectedDate = calendar.startOfDay(for: .now)
@@ -122,13 +120,13 @@ struct DayCalendarView: View {
                         Image(systemName: "scope")
                     }
                     .disabled(calendar.isDateInToday(selectedDate))
-                    .help("Сегодня")
-                    .accessibilityLabel("Сегодня")
+                    .help("Today")
+                    .accessibilityLabel("Today")
 
                     Button { changeDay(by: 1) } label: {
                         Image(systemName: "chevron.right")
                     }
-                    .help("Следующий день")
+                    .help("Next day")
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
@@ -142,8 +140,8 @@ struct DayCalendarView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.large)
                 .font(.system(size: 15, weight: .semibold))
-                .help("История")
-                .accessibilityLabel("История")
+                .help("History")
+                .accessibilityLabel("History")
                 .accessibilityIdentifier("history-popover-button")
                 .popover(isPresented: $showHistory, arrowEdge: .top) {
                     HistoryView { date in
@@ -164,25 +162,28 @@ struct DayCalendarView: View {
                 .controlSize(.large)
                 .font(.system(size: 15, weight: .semibold))
                 .disabled(unfinishedCount == 0)
-                .help("Перенести все невыполненные задачи")
-                .accessibilityLabel("На завтра")
+                .help("Move all unfinished tasks to tomorrow")
+                .accessibilityLabel("Move to Tomorrow")
                 .accessibilityIdentifier("move-unfinished-button")
 
                 Button {
                     onAdd(defaultStartMinute)
                 } label: {
-                    Label("Новая", systemImage: "plus")
+                    Image(systemName: "plus")
+                        .font(.system(size: 16, weight: .semibold))
+                        .frame(width: 18, height: 18, alignment: .center)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .font(.system(size: 15, weight: .semibold))
+                .padding(.trailing, 10)
+                .accessibilityLabel("New Task")
                 .accessibilityIdentifier("add-task-button")
             }
 
             ProgressView(value: summary.progress)
                 .tint(summary.remaining == 0 && summary.total > 0 ? .green : AppTheme.accent)
-                .accessibilityLabel("Прогресс дня")
-                .accessibilityValue("\(summary.resolved) из \(summary.total)")
+                .accessibilityLabel("Day progress")
+                .accessibilityValue("\(summary.resolved) of \(summary.total)")
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
@@ -192,7 +193,7 @@ struct DayCalendarView: View {
     private var datePickerPopover: some View {
         VStack(spacing: 10) {
             DatePicker(
-                "Дата",
+                "Date",
                 selection: Binding(
                     get: { selectedDate },
                     set: { date in
@@ -209,7 +210,7 @@ struct DayCalendarView: View {
 
             Divider()
 
-            Button("Сегодня") {
+            Button("Today") {
                 selectedDate = calendar.startOfDay(for: .now)
                 movedMessage = nil
                 showDatePicker = false
@@ -217,15 +218,16 @@ struct DayCalendarView: View {
             .buttonStyle(.bordered)
             .disabled(calendar.isDateInToday(selectedDate))
         }
-        .padding(12)
-        .frame(width: 290)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 10)
+        .frame(width: 170)
     }
 
     private var summaryLine: String {
-        guard summary.total > 0 else { return "Свободный день — добавьте первую задачу" }
-        var parts = ["\(summary.completed) из \(summary.total) выполнено"]
-        if summary.moved > 0 { parts.append("\(summary.moved) перенесено") }
-        parts.append("\(durationText(minutes: summary.scheduledMinutes)) в плане")
+        guard summary.total > 0 else { return "Open day — add your first task" }
+        var parts = ["\(summary.completed) of \(summary.total) completed"]
+        if summary.moved > 0 { parts.append("\(summary.moved) moved") }
+        parts.append("\(durationText(minutes: summary.scheduledMinutes)) planned")
         return parts.joined(separator: "  •  ")
     }
 
@@ -249,7 +251,7 @@ struct DayCalendarView: View {
     private func moveUnfinished() {
         let count = store.moveUnfinishedTasksToTomorrow(from: selectedDate)
         withAnimation(.snappy) {
-            movedMessage = count == 1 ? "1 задача перенесена" : "\(count) задач перенесено"
+            movedMessage = count == 1 ? "1 task moved" : "\(count) tasks moved"
         }
     }
 }

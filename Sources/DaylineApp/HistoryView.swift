@@ -8,7 +8,7 @@ struct HistoryView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("История")
+                Text("History")
                     .font(.title2.bold())
                 Spacer()
                 Text("\(store.history.count) \(dayWord(store.history.count))")
@@ -25,9 +25,9 @@ struct HistoryView: View {
 
             if store.history.isEmpty {
                 ContentUnavailableView {
-                    Label("История пока пуста", systemImage: "clock.arrow.circlepath")
+                    Label("No History Yet", systemImage: "clock.arrow.circlepath")
                 } description: {
-                    Text("Добавьте задачу в календарь — здесь появится сводка дня.")
+                    Text("Add a task to the calendar to see each day's summary here.")
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -47,12 +47,7 @@ struct HistoryView: View {
     }
 
     private func dayWord(_ count: Int) -> String {
-        let lastTwo = count % 100
-        let last = count % 10
-        if (11...14).contains(lastTwo) { return "дней" }
-        if last == 1 { return "день" }
-        if (2...4).contains(last) { return "дня" }
-        return "дней"
+        count == 1 ? "day" : "days"
     }
 }
 
@@ -79,7 +74,7 @@ private struct HistoryCard: View {
                 .frame(width: 44, height: 44)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(summary.date.russianShortDay.capitalizingFirstLetter)
+                    Text(summary.date.shortDay)
                         .font(.headline)
                     Text(detailLine)
                         .font(.caption)
@@ -106,13 +101,13 @@ private struct HistoryCard: View {
             .contentShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(summary.date.russianShortDay), \(summary.completed) из \(summary.total) выполнено")
+        .accessibilityLabel("\(summary.date.shortDay), \(summary.completed) of \(summary.total) completed")
     }
 
     private var detailLine: String {
-        var parts = ["\(summary.completed)/\(summary.total) выполнено"]
-        if summary.moved > 0 { parts.append("\(summary.moved) перенесено") }
-        if summary.remaining > 0 { parts.append("\(summary.remaining) осталось") }
+        var parts = ["\(summary.completed)/\(summary.total) completed"]
+        if summary.moved > 0 { parts.append("\(summary.moved) moved") }
+        if summary.remaining > 0 { parts.append("\(summary.remaining) remaining") }
         return parts.joined(separator: "  •  ")
     }
 }

@@ -1,33 +1,33 @@
-# День за днём
+# Dayline
 
-Нативный календарь-чеклист для macOS. Задачи располагаются на 24-часовой шкале, их высота соответствует длительности, а пересекающиеся задачи автоматически раскладываются по колонкам.
+A native calendar checklist for macOS. Tasks appear on a 24-hour timeline, their height reflects their duration, and overlapping tasks are automatically arranged into columns.
 
-## Возможности
+## Features
 
-- задачи с временем начала, длительностью, заметкой и цветом;
-- перемещение задач мышкой с шагом 15 минут и защитой от пересечений;
-- изменение длительности перетаскиванием верхнего или нижнего края блока;
-- отметка выполнения прямо в календаре;
-- история по дням с прогрессом;
-- перенос всех невыполненных задач на завтра без потери записи в истории;
-- локальное хранение в `Application Support/Dayline/tasks.json`;
-- создание задачи двойным щелчком по шкале или сочетанием `⌘N`;
-- при создании кнопкой время автоматически ставится после последней задачи дня.
+- Tasks with a start time, duration, note, and color.
+- Mouse-driven rescheduling in 15-minute increments with overlap protection.
+- Duration editing by dragging either the top or bottom edge of a task.
+- Completion toggles directly in the calendar.
+- Daily history with progress summaries.
+- Move all unfinished tasks to tomorrow without losing the original history entry.
+- Local storage in `Application Support/Dayline/tasks.json`.
+- Create a task by double-clicking the timeline or pressing `⌘N`.
+- Tasks created with the toolbar button automatically start after the day's final task.
 
-## Запуск
+## Run
 
 ```bash
 swift run Dayline
 ```
 
-## Сборка приложения
+## Build the App
 
 ```bash
 ./scripts/build-app.sh
 open dist/Dayline.app
 ```
 
-## Тесты
+## Tests
 
 ```bash
 swift test

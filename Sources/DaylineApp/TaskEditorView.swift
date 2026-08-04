@@ -53,7 +53,7 @@ struct TaskEditorView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text(isEditing ? "Редактировать задачу" : "Новая задача")
+                Text(isEditing ? "Edit Task" : "New Task")
                     .font(.title2.bold())
                 Spacer()
             }
@@ -67,14 +67,14 @@ struct TaskEditorView: View {
                         .labelsHidden()
                         .textFieldStyle(.roundedBorder)
                         .focused($titleIsFocused)
-                        .accessibilityLabel("Название задачи")
+                        .accessibilityLabel("Task name")
                         .accessibilityIdentifier("task-title-field")
                         .frame(maxWidth: .infinity)
                     TextEditor(text: $draft.notes)
                         .frame(minHeight: 54)
                         .overlay(alignment: .topLeading) {
                             if draft.notes.isEmpty {
-                                Text("Заметка (необязательно)")
+                                Text("Note (optional)")
                                     .foregroundStyle(.tertiary)
                                     .padding(.top, 1)
                                     .allowsHitTesting(false)
@@ -84,10 +84,10 @@ struct TaskEditorView: View {
                     taskSectionHeader
                 }
 
-                Section("Когда") {
-                    DatePicker("День", selection: $draft.scheduledDay, displayedComponents: .date)
-                    DatePicker("Начало", selection: $draft.startTime, displayedComponents: .hourAndMinute)
-                    Picker("Длительность", selection: $draft.durationMinutes) {
+                Section("When") {
+                    DatePicker("Date", selection: $draft.scheduledDay, displayedComponents: .date)
+                    DatePicker("Start", selection: $draft.startTime, displayedComponents: .hourAndMinute)
+                    Picker("Duration", selection: $draft.durationMinutes) {
                         ForEach(durations, id: \.self) { minutes in
                             Text(durationText(minutes: minutes)).tag(minutes)
                         }
@@ -100,7 +100,7 @@ struct TaskEditorView: View {
 
             HStack {
                 if isEditing {
-                    Button("Удалить", role: .destructive) {
+                    Button("Delete", role: .destructive) {
                         if case .edit(let task) = route {
                             store.deleteTask(id: task.id)
                             dismiss()
@@ -108,9 +108,9 @@ struct TaskEditorView: View {
                     }
                 }
                 Spacer()
-                Button("Отмена", role: .cancel) { dismiss() }
+                Button("Cancel", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button(isEditing ? "Сохранить" : "Добавить") { save() }
+                Button(isEditing ? "Save" : "Add") { save() }
                     .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
                     .disabled(trimmedTitle.isEmpty)
@@ -124,7 +124,7 @@ struct TaskEditorView: View {
 
     private var taskSectionHeader: some View {
         HStack(spacing: 12) {
-            Text("Задача")
+            Text("Task")
                 .fixedSize()
 
             GeometryReader { geometry in
@@ -167,8 +167,8 @@ struct TaskEditorView: View {
                         }
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Цвет задачи")
-                .accessibilityValue(draft.colorHex == hex ? "Выбран" : "Не выбран")
+                .accessibilityLabel("Task color")
+                .accessibilityValue(draft.colorHex == hex ? "Selected" : "Not selected")
             }
         }
         .frame(maxWidth: .infinity, alignment: .trailing)

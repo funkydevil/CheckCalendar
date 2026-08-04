@@ -34,7 +34,7 @@ struct RootView: View {
                 .environment(store)
         }
         .alert(
-            "Ошибка хранилища",
+            "Storage Error",
             isPresented: Binding(
                 get: { store.persistenceError != nil },
                 set: { isPresented in
@@ -42,9 +42,9 @@ struct RootView: View {
                 }
             )
         ) {
-            Button("Понятно") { store.clearPersistenceError() }
+            Button("OK") { store.clearPersistenceError() }
         } message: {
-            Text(store.persistenceError ?? "Неизвестная ошибка")
+            Text(store.persistenceError ?? "Unknown error")
         }
         .onReceive(NotificationCenter.default.publisher(for: .newDaylineTask)) { _ in
             editorRoute = .new(date: selectedDate)

@@ -19,7 +19,7 @@ public final class TaskStore {
             self.persistenceError = nil
         } catch {
             self.tasks = []
-            self.persistenceError = "Не удалось открыть сохранённые задачи: \(error.localizedDescription)"
+            self.persistenceError = "Could not open saved tasks: \(error.localizedDescription)"
         }
     }
 
@@ -233,7 +233,7 @@ public final class TaskStore {
         do {
             try flush()
         } catch {
-            persistenceError = "Не удалось сохранить изменения: \(error.localizedDescription)"
+            persistenceError = "Could not save changes: \(error.localizedDescription)"
         }
     }
 

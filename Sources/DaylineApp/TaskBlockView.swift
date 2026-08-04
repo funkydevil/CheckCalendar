@@ -47,15 +47,15 @@ struct TaskBlockView: View {
         .onHover { isHovering = $0 }
         .contextMenu {
             if !task.isMoved {
-                Button("Редактировать", systemImage: "pencil", action: onEdit)
-                Button(task.isCompleted ? "Вернуть в работу" : "Отметить выполненной", systemImage: statusIcon, action: onToggle)
+                Button("Edit", systemImage: "pencil", action: onEdit)
+                Button(task.isCompleted ? "Mark Incomplete" : "Mark Complete", systemImage: statusIcon, action: onToggle)
                 Divider()
             }
-            Button("Удалить", systemImage: "trash", role: .destructive, action: onDelete)
+            Button("Delete", systemImage: "trash", role: .destructive, action: onDelete)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(task.title), \(subtitle)")
-        .accessibilityHint(task.isMoved ? "Архивная запись" : "Перетащите для изменения времени; потяните верхний или нижний край для изменения длительности")
+        .accessibilityHint(task.isMoved ? "Archived task" : "Drag to reschedule; drag the top or bottom edge to change duration")
         .accessibilityIdentifier("task-block-\(task.id.uuidString)")
     }
 
@@ -140,8 +140,8 @@ struct TaskBlockView: View {
             .contentShape(Rectangle())
             .gesture(topResizeGesture)
             .disabled(task.isMoved)
-            .help("Потяните верхнюю границу, чтобы изменить начало")
-            .accessibilityLabel("Изменить начало задачи")
+            .help("Drag the top edge to change the start time")
+            .accessibilityLabel("Change task start time")
             .accessibilityIdentifier("task-resize-top-handle-\(task.id.uuidString)")
     }
 
@@ -151,8 +151,8 @@ struct TaskBlockView: View {
             .contentShape(Rectangle())
             .gesture(bottomResizeGesture)
             .disabled(task.isMoved)
-            .help("Потяните нижнюю границу, чтобы изменить окончание")
-            .accessibilityLabel("Изменить окончание задачи")
+            .help("Drag the bottom edge to change the end time")
+            .accessibilityLabel("Change task end time")
             .accessibilityIdentifier("task-resize-bottom-handle-\(task.id.uuidString)")
     }
 
@@ -236,8 +236,8 @@ struct TaskBlockView: View {
     }
 
     private var toggleHelp: String {
-        if task.isMoved { return "Задача перенесена на следующий день" }
-        return task.isCompleted ? "Вернуть в работу" : "Отметить выполненной"
+        if task.isMoved { return "Task moved to the next day" }
+        return task.isCompleted ? "Mark Incomplete" : "Mark Complete"
     }
 
     private func statusColor(base: Color) -> Color {
@@ -247,8 +247,8 @@ struct TaskBlockView: View {
 
     private var subtitle: String {
         let time = "\(timeText(minutes: task.startMinutes))–\(timeText(minutes: task.endMinutes))"
-        if task.isMoved { return "\(time)  •  перенесено" }
-        if task.carriedFromTaskID != nil { return "\(time)  •  со вчера" }
+        if task.isMoved { return "\(time)  •  moved" }
+        if task.carriedFromTaskID != nil { return "\(time)  •  from yesterday" }
         return "\(time)  •  \(durationText(minutes: task.durationMinutes))"
     }
 }
