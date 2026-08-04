@@ -1,7 +1,8 @@
 // !$*UTF8*$!
 {
 	archiveVersion = 1;
-	classes = {};
+	classes = {
+	};
 	objectVersion = 56;
 	objects = {
 
@@ -23,7 +24,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		C10000000000000000000001 = {isa = PBXContainerItemProxy; containerPortal = D10000000000000000000001 /* Project object */; proxyType = 1; remoteGlobalIDString = E10000000000000000000001; remoteInfo = Dayline; };
+		C10000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D10000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E10000000000000000000001;
+			remoteInfo = Dayline;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -47,57 +54,375 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		F10000000000000000000001 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-		F10000000000000000000002 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A1000000000000000000000E /* XCTest.framework in Frameworks */,); runOnlyForDeploymentPostprocessing = 0; };
+		F10000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F10000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000000000000000000000E /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		D10000000000000000000002 = {isa = PBXGroup; children = (D10000000000000000000003 /* Sources */, D10000000000000000000006 /* Resources */, D10000000000000000000007 /* Tests */, B10000000000000000000011 /* Dayline.entitlements */, D10000000000000000000008 /* Frameworks */, D10000000000000000000005 /* Products */,); sourceTree = "<group>"; };
-		D10000000000000000000003 /* Sources */ = {isa = PBXGroup; children = (D10000000000000000000004 /* DaylineApp */, D10000000000000000000009 /* DaylineCore */,); path = Sources; sourceTree = "<group>"; };
-		D10000000000000000000004 /* DaylineApp */ = {isa = PBXGroup; children = (B10000000000000000000001, B10000000000000000000002, B10000000000000000000003, B10000000000000000000004, B10000000000000000000005, B10000000000000000000006, B10000000000000000000007,); path = DaylineApp; sourceTree = "<group>"; };
-		D10000000000000000000009 /* DaylineCore */ = {isa = PBXGroup; children = (B10000000000000000000008, B10000000000000000000009, B1000000000000000000000A, B1000000000000000000000B,); path = DaylineCore; sourceTree = "<group>"; };
-		D10000000000000000000005 /* Products */ = {isa = PBXGroup; children = (B1000000000000000000000E, B1000000000000000000000F,); name = Products; sourceTree = "<group>"; };
-		D10000000000000000000006 /* Resources */ = {isa = PBXGroup; children = (B1000000000000000000000C,); path = Resources; sourceTree = "<group>"; };
-		D10000000000000000000007 /* Tests */ = {isa = PBXGroup; children = (B1000000000000000000000D,); path = Tests/DaylineCoreTests; sourceTree = "<group>"; };
-		D10000000000000000000008 /* Frameworks */ = {isa = PBXGroup; children = (B10000000000000000000010,); name = Frameworks; sourceTree = "<group>"; };
+		D10000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				D10000000000000000000003 /* Sources */,
+				D10000000000000000000006 /* Resources */,
+				D10000000000000000000007 /* Tests/DaylineCoreTests */,
+				B10000000000000000000011 /* Dayline.entitlements */,
+				D10000000000000000000008 /* Frameworks */,
+				D10000000000000000000005 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D10000000000000000000003 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				D10000000000000000000004 /* DaylineApp */,
+				D10000000000000000000009 /* DaylineCore */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		D10000000000000000000004 /* DaylineApp */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000001 /* DaylineApp.swift */,
+				B10000000000000000000002 /* DayCalendarView.swift */,
+				B10000000000000000000003 /* HistoryView.swift */,
+				B10000000000000000000004 /* RootView.swift */,
+				B10000000000000000000005 /* TaskBlockView.swift */,
+				B10000000000000000000006 /* TaskEditorView.swift */,
+				B10000000000000000000007 /* Theme.swift */,
+			);
+			path = DaylineApp;
+			sourceTree = "<group>";
+		};
+		D10000000000000000000005 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B1000000000000000000000E /* Dayline.app */,
+				B1000000000000000000000F /* DaylineTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D10000000000000000000006 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B1000000000000000000000C /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		D10000000000000000000007 /* Tests/DaylineCoreTests */ = {
+			isa = PBXGroup;
+			children = (
+				B1000000000000000000000D /* TaskStoreTests.swift */,
+			);
+			path = Tests/DaylineCoreTests;
+			sourceTree = "<group>";
+		};
+		D10000000000000000000008 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000010 /* XCTest.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D10000000000000000000009 /* DaylineCore */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000008 /* DayTask.swift */,
+				B10000000000000000000009 /* TaskLayoutEngine.swift */,
+				B1000000000000000000000A /* TaskResizePlanner.swift */,
+				B1000000000000000000000B /* TaskStore.swift */,
+			);
+			path = DaylineCore;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		E10000000000000000000001 /* Dayline */ = {isa = PBXNativeTarget; buildConfigurationList = H10000000000000000000001; buildPhases = (F10000000000000000000003, F10000000000000000000001, F10000000000000000000005,); buildRules = (); dependencies = (); name = Dayline; productName = Dayline; productReference = B1000000000000000000000E; productType = "com.apple.product-type.application"; };
-		E10000000000000000000002 /* DaylineTests */ = {isa = PBXNativeTarget; buildConfigurationList = H10000000000000000000002; buildPhases = (F10000000000000000000004, F10000000000000000000002, F10000000000000000000006,); buildRules = (); dependencies = (C10000000000000000000002,); name = DaylineTests; productName = DaylineTests; productReference = B1000000000000000000000F; productType = "com.apple.product-type.bundle.unit-test"; };
+		E10000000000000000000001 /* Dayline */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = H10000000000000000000001 /* Build configuration list for PBXNativeTarget "Dayline" */;
+			buildPhases = (
+				F10000000000000000000003 /* Sources */,
+				F10000000000000000000001 /* Frameworks */,
+				F10000000000000000000005 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Dayline;
+			productName = Dayline;
+			productReference = B1000000000000000000000E /* Dayline.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E10000000000000000000002 /* DaylineTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = H10000000000000000000002 /* Build configuration list for PBXNativeTarget "DaylineTests" */;
+			buildPhases = (
+				F10000000000000000000004 /* Sources */,
+				F10000000000000000000002 /* Frameworks */,
+				F10000000000000000000006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C10000000000000000000002 /* PBXTargetDependency */,
+			);
+			name = DaylineTests;
+			productName = DaylineTests;
+			productReference = B1000000000000000000000F /* DaylineTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		D10000000000000000000001 /* Project object */ = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = YES; LastSwiftUpdateCheck = 2600; LastUpgradeCheck = 2600; TargetAttributes = {E10000000000000000000001 = {CreatedOnToolsVersion = 26.0; }; E10000000000000000000002 = {CreatedOnToolsVersion = 26.0; TestTargetID = E10000000000000000000001; };};}; buildConfigurationList = H10000000000000000000003; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base,); mainGroup = D10000000000000000000002; productRefGroup = D10000000000000000000005; projectDirPath = ""; projectRoot = ""; targets = (E10000000000000000000001, E10000000000000000000002,); };
+		D10000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					E10000000000000000000001 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					E10000000000000000000002 = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = E10000000000000000000001;
+					};
+				};
+			};
+			buildConfigurationList = H10000000000000000000003 /* Build configuration list for PBXProject "Dayline" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = D10000000000000000000002;
+			productRefGroup = D10000000000000000000005 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E10000000000000000000001 /* Dayline */,
+				E10000000000000000000002 /* DaylineTests */,
+			);
+		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		F10000000000000000000005 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A1000000000000000000000C,); runOnlyForDeploymentPostprocessing = 0; };
-		F10000000000000000000006 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		F10000000000000000000005 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000000000000000000000C /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F10000000000000000000006 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		F10000000000000000000003 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000001, A10000000000000000000002, A10000000000000000000003, A10000000000000000000004, A10000000000000000000005, A10000000000000000000006, A10000000000000000000007, A10000000000000000000008, A10000000000000000000009, A1000000000000000000000A, A1000000000000000000000B,); runOnlyForDeploymentPostprocessing = 0; };
-		F10000000000000000000004 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A1000000000000000000000D,); runOnlyForDeploymentPostprocessing = 0; };
+		F10000000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* DaylineApp.swift in Sources */,
+				A10000000000000000000002 /* DayCalendarView.swift in Sources */,
+				A10000000000000000000003 /* HistoryView.swift in Sources */,
+				A10000000000000000000004 /* RootView.swift in Sources */,
+				A10000000000000000000005 /* TaskBlockView.swift in Sources */,
+				A10000000000000000000006 /* TaskEditorView.swift in Sources */,
+				A10000000000000000000007 /* Theme.swift in Sources */,
+				A10000000000000000000008 /* DayTask.swift in Sources */,
+				A10000000000000000000009 /* TaskLayoutEngine.swift in Sources */,
+				A1000000000000000000000A /* TaskResizePlanner.swift in Sources */,
+				A1000000000000000000000B /* TaskStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F10000000000000000000004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000000000000000000000D /* TaskStoreTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		C10000000000000000000002 = {isa = PBXTargetDependency; target = E10000000000000000000001 /* Dayline */; targetProxy = C10000000000000000000001; };
+		C10000000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E10000000000000000000001 /* Dayline */;
+			targetProxy = C10000000000000000000001 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		G10000000000000000000001 = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; COPY_PHASE_STRIP = NO; DEBUG_INFORMATION_FORMAT = dwarf; ENABLE_TESTABILITY = YES; GCC_C_LANGUAGE_STANDARD = gnu17; GCC_OPTIMIZATION_LEVEL = 0; MACOSX_DEPLOYMENT_TARGET = 14.0; ONLY_ACTIVE_ARCH = YES; SDKROOT = macosx; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; }; name = Debug; };
-		G10000000000000000000002 = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; COPY_PHASE_STRIP = YES; DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; ENABLE_NS_ASSERTIONS = NO; GCC_C_LANGUAGE_STANDARD = gnu17; MACOSX_DEPLOYMENT_TARGET = 14.0; SDKROOT = macosx; SWIFT_COMPILATION_MODE = wholemodule; SWIFT_OPTIMIZATION_LEVEL = "-O"; }; name = Release; };
-		G10000000000000000000003 = {isa = XCBuildConfiguration; buildSettings = {ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor; CODE_SIGN_ENTITLEMENTS = Dayline.entitlements; CODE_SIGN_STYLE = Automatic; COMBINE_HIDPI_IMAGES = YES; CURRENT_PROJECT_VERSION = 1; ENABLE_APP_SANDBOX = YES; ENABLE_HARDENED_RUNTIME = YES; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = Dayline; INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity"; MARKETING_VERSION = 1.0; PRODUCT_BUNDLE_IDENTIFIER = com.funkydevil.Dayline; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_VERSION = 6.0; }; name = Debug; };
-		G10000000000000000000004 = {isa = XCBuildConfiguration; buildSettings = {ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor; CODE_SIGN_ENTITLEMENTS = Dayline.entitlements; CODE_SIGN_STYLE = Automatic; COMBINE_HIDPI_IMAGES = YES; CURRENT_PROJECT_VERSION = 1; ENABLE_APP_SANDBOX = YES; ENABLE_HARDENED_RUNTIME = YES; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = Dayline; INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity"; MARKETING_VERSION = 1.0; PRODUCT_BUNDLE_IDENTIFIER = com.funkydevil.Dayline; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_VERSION = 6.0; }; name = Release; };
-		G10000000000000000000005 = {isa = XCBuildConfiguration; buildSettings = {BUNDLE_LOADER = "$(TEST_HOST)"; CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; MACOSX_DEPLOYMENT_TARGET = 14.0; PRODUCT_BUNDLE_IDENTIFIER = com.funkydevil.DaylineTests; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 6.0; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dayline.app/Contents/MacOS/Dayline"; }; name = Debug; };
-		G10000000000000000000006 = {isa = XCBuildConfiguration; buildSettings = {BUNDLE_LOADER = "$(TEST_HOST)"; CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; MACOSX_DEPLOYMENT_TARGET = 14.0; PRODUCT_BUNDLE_IDENTIFIER = com.funkydevil.DaylineTests; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 6.0; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dayline.app/Contents/MacOS/Dayline"; }; name = Release; };
+		G10000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		G10000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		G10000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Dayline.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = F93NU8DF46;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Dayline;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kp.dayline;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		G10000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Dayline.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = F93NU8DF46;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Dayline;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kp.dayline;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		G10000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.funkydevil.DaylineTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dayline.app/Contents/MacOS/Dayline";
+			};
+			name = Debug;
+		};
+		G10000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.funkydevil.DaylineTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dayline.app/Contents/MacOS/Dayline";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		H10000000000000000000001 = {isa = XCConfigurationList; buildConfigurations = (G10000000000000000000003, G10000000000000000000004,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-		H10000000000000000000002 = {isa = XCConfigurationList; buildConfigurations = (G10000000000000000000005, G10000000000000000000006,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-		H10000000000000000000003 = {isa = XCConfigurationList; buildConfigurations = (G10000000000000000000001, G10000000000000000000002,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		H10000000000000000000001 /* Build configuration list for PBXNativeTarget "Dayline" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				G10000000000000000000003 /* Debug */,
+				G10000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		H10000000000000000000002 /* Build configuration list for PBXNativeTarget "DaylineTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				G10000000000000000000005 /* Debug */,
+				G10000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		H10000000000000000000003 /* Build configuration list for PBXProject "Dayline" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				G10000000000000000000001 /* Debug */,
+				G10000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 	};
 	rootObject = D10000000000000000000001 /* Project object */;

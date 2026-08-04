@@ -285,7 +285,7 @@ private struct TimelineViewContent: View {
                     .frame(width: geometry.size.width, height: hourHeight * 24)
                 }
                 .onAppear {
-                    proxy.scrollTo(7, anchor: .top)
+                    proxy.scrollTo(calendar.isDateInToday(date) ? currentHourAnchor : 7, anchor: .top)
                 }
                 .onChange(of: date) {
                     proxy.scrollTo(calendar.isDateInToday(date) ? currentHourAnchor : 7, anchor: .top)
