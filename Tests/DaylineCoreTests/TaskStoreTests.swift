@@ -147,7 +147,7 @@ final class TaskStoreTests: XCTestCase {
         XCTAssertEqual(store.tasks.first(where: { $0.id == movable.id })?.startMinutes, 600)
     }
 
-    func testResizeStopsBeforeNextTask() {
+    func testBottomResizePushesFollowingTask() {
         let fixture = makeFixtureURL()
         defer { try? FileManager.default.removeItem(at: fixture.deletingLastPathComponent()) }
         let day = makeDate(year: 2026, month: 8, day: 3)
@@ -157,11 +157,12 @@ final class TaskStoreTests: XCTestCase {
 
         let duration = store.resizeTask(id: first.id, to: 180)
 
-        XCTAssertEqual(duration, 90)
-        XCTAssertEqual(store.tasks.first(where: { $0.id == first.id })?.durationMinutes, 90)
+        XCTAssertEqual(duration, 180)
+        XCTAssertEqual(store.tasks.first(where: { $0.id == first.id })?.durationMinutes, 180)
+        XCTAssertEqual(store.tasks.first(where: { $0.title == "Следующая" })?.startMinutes, 720)
     }
 
-    func testTopResizeKeepsEndAndStopsAfterPreviousTask() {
+    func testTopResizePushesPreviousTaskAndKeepsEnd() {
         let fixture = makeFixtureURL()
         defer { try? FileManager.default.removeItem(at: fixture.deletingLastPathComponent()) }
         let day = makeDate(year: 2026, month: 8, day: 3)
@@ -172,10 +173,59 @@ final class TaskStoreTests: XCTestCase {
         let startMinutes = store.resizeTaskFromTop(id: task.id, to: 510)
         let resized = store.tasks.first(where: { $0.id == task.id })
 
-        XCTAssertEqual(startMinutes, 540)
-        XCTAssertEqual(resized?.startMinutes, 540)
-        XCTAssertEqual(resized?.durationMinutes, 120)
+        XCTAssertEqual(startMinutes, 510)
+        XCTAssertEqual(resized?.startMinutes, 510)
+        XCTAssertEqual(resized?.durationMinutes, 150)
         XCTAssertEqual(resized?.endMinutes, 660)
+        XCTAssertEqual(store.tasks.first(where: { $0.title == "Предыдущая" })?.startMinutes, 450)
+    }
+
+    func testBottomResizePushesAChainOfTasks() {
+        let fixture = makeFixtureURL()
+        defer { try? FileManager.default.removeItem(at: fixture.deletingLastPathComponent()) }
+        let day = makeDate(year: 2026, month: 8, day: 3)
+        let store = TaskStore(fileURL: fixture, calendar: utcCalendar)
+        let first = store.addTask(title: "Первая", scheduledDay: day, startMinutes: 540, durationMinutes: 60, colorHex: "5B7CFA")
+        let second = store.addTask(title: "Вторая", scheduledDay: day, startMinutes: 600, durationMinutes: 30, colorHex: "10B981")
+        let third = store.addTask(title: "Третья", scheduledDay: day, startMinutes: 630, durationMinutes: 30, colorHex: "8B5CF6")
+
+        let duration = store.resizeTask(id: first.id, to: 120)
+
+        XCTAssertEqual(duration, 120)
+        XCTAssertEqual(store.tasks.first(where: { $0.id == second.id })?.startMinutes, 660)
+        XCTAssertEqual(store.tasks.first(where: { $0.id == third.id })?.startMinutes, 690)
+    }
+
+    func testTopResizePushesAChainOfTasks() {
+        let fixture = makeFixtureURL()
+        defer { try? FileManager.default.removeItem(at: fixture.deletingLastPathComponent()) }
+        let day = makeDate(year: 2026, month: 8, day: 3)
+        let store = TaskStore(fileURL: fixture, calendar: utcCalendar)
+        let first = store.addTask(title: "Первая", scheduledDay: day, startMinutes: 510, durationMinutes: 30, colorHex: "5B7CFA")
+        let second = store.addTask(title: "Вторая", scheduledDay: day, startMinutes: 540, durationMinutes: 30, colorHex: "10B981")
+        let third = store.addTask(title: "Третья", scheduledDay: day, startMinutes: 570, durationMinutes: 60, colorHex: "8B5CF6")
+
+        let startMinutes = store.resizeTaskFromTop(id: third.id, to: 510)
+
+        XCTAssertEqual(startMinutes, 510)
+        XCTAssertEqual(store.tasks.first(where: { $0.id == second.id })?.startMinutes, 480)
+        XCTAssertEqual(store.tasks.first(where: { $0.id == first.id })?.startMinutes, 450)
+        XCTAssertEqual(store.tasks.first(where: { $0.id == third.id })?.endMinutes, 630)
+    }
+
+    func testBottomResizeIsLimitedWhenPushedChainReachesEndOfDay() {
+        let fixture = makeFixtureURL()
+        defer { try? FileManager.default.removeItem(at: fixture.deletingLastPathComponent()) }
+        let day = makeDate(year: 2026, month: 8, day: 3)
+        let store = TaskStore(fileURL: fixture, calendar: utcCalendar)
+        let first = store.addTask(title: "Первая", scheduledDay: day, startMinutes: 1_320, durationMinutes: 30, colorHex: "5B7CFA")
+        let second = store.addTask(title: "Вторая", scheduledDay: day, startMinutes: 1_350, durationMinutes: 60, colorHex: "10B981")
+
+        let duration = store.resizeTask(id: first.id, to: 120)
+
+        XCTAssertEqual(duration, 60)
+        XCTAssertEqual(store.tasks.first(where: { $0.id == second.id })?.startMinutes, 1_380)
+        XCTAssertEqual(store.tasks.first(where: { $0.id == second.id })?.endMinutes, 1_440)
     }
 
     func testTopResizeCanShortenTaskWhileKeepingEnd() {

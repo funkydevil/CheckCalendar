@@ -235,11 +235,6 @@ struct DayCalendarView: View {
 }
 
 private struct TimelineViewContent: View {
-    private enum ResizeEdge {
-        case top
-        case bottom
-    }
-
     let date: Date
     let tasks: [DayTask]
     let onAdd: (Int) -> Void
@@ -251,8 +246,7 @@ private struct TimelineViewContent: View {
     let onResizeFromTop: (UUID, Int) -> Void
 
     @State private var resizingTaskID: UUID?
-    @State private var resizingEdge: ResizeEdge?
-    @State private var resizeTranslation: CGFloat = 0
+    @State private var resizePlan: TaskResizePlan?
 
     private let hourHeight: CGFloat = 74
     private let labelWidth: CGFloat = 64
@@ -306,19 +300,19 @@ private struct TimelineViewContent: View {
 
     @ViewBuilder
     private func taskBlocks(totalWidth: CGFloat) -> some View {
-        let placements = TaskLayoutEngine.placements(for: tasks)
+        let originalTasksByID = Dictionary(uniqueKeysWithValues: tasks.map { ($0.id, $0) })
+        let placements = TaskLayoutEngine.placements(for: renderedTasks)
         let contentX = labelWidth + 14
         let availableWidth = max(totalWidth - contentX - 24, 240)
 
         ForEach(placements) { placement in
+            let originalTask = originalTasksByID[placement.task.id] ?? placement.task
             let spacing: CGFloat = 6
             let laneWidth = (availableWidth - spacing * CGFloat(placement.laneCount - 1)) / CGFloat(placement.laneCount)
             let x = contentX + CGFloat(placement.lane) * (laneWidth + spacing)
-            let previewStart = previewStartMinutes(for: placement.task)
-            let previewDuration = previewDurationMinutes(for: placement.task)
             let timelineFrame = TaskLayoutEngine.timelineFrame(
-                startMinutes: previewStart,
-                durationMinutes: previewDuration,
+                startMinutes: placement.task.startMinutes,
+                durationMinutes: placement.task.durationMinutes,
                 hourHeight: Double(hourHeight)
             )
             let y = CGFloat(timelineFrame.minY)
@@ -327,28 +321,30 @@ private struct TimelineViewContent: View {
 
             TaskBlockView(
                 task: placement.task,
-                isCompact: previewDuration <= 30,
+                isCompact: placement.task.durationMinutes <= 30,
                 moveRange: moveRange,
                 onToggle: { onToggle(placement.task.id) },
-                onEdit: { onEdit(placement.task) },
+                onEdit: { onEdit(originalTask) },
                 onDelete: { onDelete(placement.task.id) },
                 onMoveEnded: { translation in
-                    let requested = placement.task.startMinutes + snappedMinuteDelta(for: translation)
+                    let requested = originalTask.startMinutes + snappedMinuteDelta(for: translation)
                     onMove(placement.task.id, requested)
                 },
                 onTopResizeChanged: { translation in
-                    updateResizePreview(for: placement.task.id, edge: .top, translation: translation)
+                    let requested = originalTask.startMinutes + snappedMinuteDelta(for: translation)
+                    updateTopResizePreview(for: placement.task.id, requestedStartMinutes: requested)
                 },
                 onTopResizeEnded: { translation in
-                    let requested = placement.task.startMinutes + snappedMinuteDelta(for: translation)
+                    let requested = originalTask.startMinutes + snappedMinuteDelta(for: translation)
                     clearResizePreview()
                     onResizeFromTop(placement.task.id, requested)
                 },
                 onBottomResizeChanged: { translation in
-                    updateResizePreview(for: placement.task.id, edge: .bottom, translation: translation)
+                    let requested = originalTask.durationMinutes + snappedMinuteDelta(for: translation)
+                    updateBottomResizePreview(for: placement.task.id, requestedDurationMinutes: requested)
                 },
                 onBottomResizeEnded: { translation in
-                    let requested = placement.task.durationMinutes + snappedMinuteDelta(for: translation)
+                    let requested = originalTask.durationMinutes + snappedMinuteDelta(for: translation)
                     clearResizePreview()
                     onResize(placement.task.id, requested)
                 }
@@ -359,24 +355,13 @@ private struct TimelineViewContent: View {
         }
     }
 
-    private func previewStartMinutes(for task: DayTask) -> Int {
-        guard resizingTaskID == task.id, resizingEdge == .top else { return task.startMinutes }
-        return min(
-            max(task.startMinutes + snappedMinuteDelta(for: resizeTranslation), 0),
-            task.endMinutes - 15
-        )
-    }
-
-    private func previewDurationMinutes(for task: DayTask) -> Int {
-        guard resizingTaskID == task.id else { return task.durationMinutes }
-        switch resizingEdge {
-        case .top:
-            return task.endMinutes - previewStartMinutes(for: task)
-        case .bottom:
-            let maximumDuration = 1_440 - task.startMinutes
-            return min(max(task.durationMinutes + snappedMinuteDelta(for: resizeTranslation), 15), maximumDuration)
-        case nil:
-            return task.durationMinutes
+    private var renderedTasks: [DayTask] {
+        tasks.map { task in
+            guard let timing = resizePlan?[task.id] else { return task }
+            var rendered = task
+            rendered.startMinutes = timing.startMinutes
+            rendered.durationMinutes = timing.durationMinutes
+            return rendered
         }
     }
 
@@ -387,14 +372,27 @@ private struct TimelineViewContent: View {
 
     private func clearResizePreview() {
         resizingTaskID = nil
-        resizingEdge = nil
-        resizeTranslation = 0
+        resizePlan = nil
     }
 
-    private func updateResizePreview(for taskID: UUID, edge: ResizeEdge, translation: CGFloat) {
+    private func updateTopResizePreview(for taskID: UUID, requestedStartMinutes: Int) {
+        let plan = TaskResizePlanner.resizeFromTop(
+            tasks: tasks,
+            taskID: taskID,
+            requestedStartMinutes: requestedStartMinutes
+        )
         resizingTaskID = taskID
-        resizingEdge = edge
-        resizeTranslation = translation
+        if resizePlan != plan { resizePlan = plan }
+    }
+
+    private func updateBottomResizePreview(for taskID: UUID, requestedDurationMinutes: Int) {
+        let plan = TaskResizePlanner.resizeFromBottom(
+            tasks: tasks,
+            taskID: taskID,
+            requestedDurationMinutes: requestedDurationMinutes
+        )
+        resizingTaskID = taskID
+        if resizePlan != plan { resizePlan = plan }
     }
 
     @ViewBuilder
