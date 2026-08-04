@@ -162,22 +162,42 @@ final class TaskStoreTests: XCTestCase {
         XCTAssertEqual(store.tasks.first(where: { $0.title == "Следующая" })?.startMinutes, 720)
     }
 
-    func testTopResizePushesPreviousTaskAndKeepsEnd() {
+    func testTopResizeShrinksPreviousTaskBeforeMovingIt() {
         let fixture = makeFixtureURL()
         defer { try? FileManager.default.removeItem(at: fixture.deletingLastPathComponent()) }
         let day = makeDate(year: 2026, month: 8, day: 3)
         let store = TaskStore(fileURL: fixture, calendar: utcCalendar)
-        store.addTask(title: "Предыдущая", scheduledDay: day, startMinutes: 480, durationMinutes: 60, colorHex: "10B981")
+        let previous = store.addTask(title: "Предыдущая", scheduledDay: day, startMinutes: 480, durationMinutes: 60, colorHex: "10B981")
         let task = store.addTask(title: "Растягиваем вверх", scheduledDay: day, startMinutes: 600, durationMinutes: 60, colorHex: "5B7CFA")
 
         let startMinutes = store.resizeTaskFromTop(id: task.id, to: 510)
         let resized = store.tasks.first(where: { $0.id == task.id })
+        let adjustedPrevious = store.tasks.first(where: { $0.id == previous.id })
 
         XCTAssertEqual(startMinutes, 510)
         XCTAssertEqual(resized?.startMinutes, 510)
         XCTAssertEqual(resized?.durationMinutes, 150)
         XCTAssertEqual(resized?.endMinutes, 660)
-        XCTAssertEqual(store.tasks.first(where: { $0.title == "Предыдущая" })?.startMinutes, 450)
+        XCTAssertEqual(adjustedPrevious?.startMinutes, 480)
+        XCTAssertEqual(adjustedPrevious?.durationMinutes, 30)
+        XCTAssertEqual(adjustedPrevious?.endMinutes, 510)
+    }
+
+    func testTopResizeMovesPreviousTaskAfterShrinkingItToFifteenMinutes() {
+        let fixture = makeFixtureURL()
+        defer { try? FileManager.default.removeItem(at: fixture.deletingLastPathComponent()) }
+        let day = makeDate(year: 2026, month: 8, day: 3)
+        let store = TaskStore(fileURL: fixture, calendar: utcCalendar)
+        let previous = store.addTask(title: "Предыдущая", scheduledDay: day, startMinutes: 540, durationMinutes: 60, colorHex: "10B981")
+        let task = store.addTask(title: "Растягиваем вверх", scheduledDay: day, startMinutes: 600, durationMinutes: 60, colorHex: "5B7CFA")
+
+        let startMinutes = store.resizeTaskFromTop(id: task.id, to: 525)
+        let adjustedPrevious = store.tasks.first(where: { $0.id == previous.id })
+
+        XCTAssertEqual(startMinutes, 525)
+        XCTAssertEqual(adjustedPrevious?.startMinutes, 510)
+        XCTAssertEqual(adjustedPrevious?.durationMinutes, 15)
+        XCTAssertEqual(adjustedPrevious?.endMinutes, 525)
     }
 
     func testBottomResizePushesAChainOfTasks() {
@@ -208,9 +228,28 @@ final class TaskStoreTests: XCTestCase {
         let startMinutes = store.resizeTaskFromTop(id: third.id, to: 510)
 
         XCTAssertEqual(startMinutes, 510)
-        XCTAssertEqual(store.tasks.first(where: { $0.id == second.id })?.startMinutes, 480)
-        XCTAssertEqual(store.tasks.first(where: { $0.id == first.id })?.startMinutes, 450)
+        XCTAssertEqual(store.tasks.first(where: { $0.id == second.id })?.startMinutes, 495)
+        XCTAssertEqual(store.tasks.first(where: { $0.id == second.id })?.durationMinutes, 15)
+        XCTAssertEqual(store.tasks.first(where: { $0.id == first.id })?.startMinutes, 480)
+        XCTAssertEqual(store.tasks.first(where: { $0.id == first.id })?.durationMinutes, 15)
         XCTAssertEqual(store.tasks.first(where: { $0.id == third.id })?.endMinutes, 630)
+    }
+
+    func testTopResizeIsLimitedWhenShrunkTaskReachesStartOfDay() {
+        let fixture = makeFixtureURL()
+        defer { try? FileManager.default.removeItem(at: fixture.deletingLastPathComponent()) }
+        let day = makeDate(year: 2026, month: 8, day: 3)
+        let store = TaskStore(fileURL: fixture, calendar: utcCalendar)
+        let previous = store.addTask(title: "Предыдущая", scheduledDay: day, startMinutes: 0, durationMinutes: 60, colorHex: "10B981")
+        let task = store.addTask(title: "Растягиваем вверх", scheduledDay: day, startMinutes: 60, durationMinutes: 60, colorHex: "5B7CFA")
+
+        let startMinutes = store.resizeTaskFromTop(id: task.id, to: 0)
+        let adjustedPrevious = store.tasks.first(where: { $0.id == previous.id })
+
+        XCTAssertEqual(startMinutes, 15)
+        XCTAssertEqual(adjustedPrevious?.startMinutes, 0)
+        XCTAssertEqual(adjustedPrevious?.durationMinutes, 15)
+        XCTAssertEqual(adjustedPrevious?.endMinutes, 15)
     }
 
     func testBottomResizeIsLimitedWhenPushedChainReachesEndOfDay() {

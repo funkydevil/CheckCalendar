@@ -122,11 +122,22 @@ public enum TaskResizePlanner {
                 continue
             }
             guard !task.isMoved else { return nil }
-            let shiftedStart = cursor - task.durationMinutes
+
+            let overlap = task.endMinutes - cursor
+            let shrinkableDuration = task.durationMinutes - 15
+            if overlap <= shrinkableDuration {
+                timings[task.id] = TaskTiming(
+                    startMinutes: task.startMinutes,
+                    durationMinutes: task.durationMinutes - overlap
+                )
+                return TaskResizePlan(timings: timings)
+            }
+
+            let shiftedStart = cursor - 15
             guard shiftedStart >= 0 else { return nil }
             timings[task.id] = TaskTiming(
                 startMinutes: shiftedStart,
-                durationMinutes: task.durationMinutes
+                durationMinutes: 15
             )
             cursor = shiftedStart
             cascadeStarted = true
