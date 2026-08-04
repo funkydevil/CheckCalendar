@@ -55,9 +55,7 @@ struct DayCalendarView: View {
     private var header: some View {
         VStack(spacing: 9) {
             HStack(alignment: .center, spacing: 8) {
-                Button {
-                    showDatePicker.toggle()
-                } label: {
+                ZStack(alignment: .topLeading) {
                     HStack(spacing: 9) {
                         Image(systemName: "calendar")
                             .font(.system(size: 16, weight: .semibold))
@@ -67,6 +65,14 @@ struct DayCalendarView: View {
                             Text(selectedDate.russianHeaderDay.capitalizingFirstLetter)
                                 .font(.headline)
                                 .lineLimit(1)
+                                .popover(
+                                    isPresented: $showDatePicker,
+                                    attachmentAnchor: .rect(.bounds),
+                                    arrowEdge: .top
+                                ) {
+                                    datePickerPopover
+                                        .presentationCompactAdaptation(.popover)
+                                }
                             Text(summaryLine)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -75,16 +81,26 @@ struct DayCalendarView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
+
+                    Button {
+                        showDatePicker.toggle()
+                    } label: {
+                        Color.clear
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 34)
+                    .accessibilityHidden(true)
                 }
-                .buttonStyle(.plain)
                 .layoutPriority(1)
+                .contentShape(Rectangle())
                 .help("Выбрать дату")
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(selectedDate.russianHeaderDay.capitalizingFirstLetter) \(summaryLine)")
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { showDatePicker.toggle() }
                 .accessibilityIdentifier("date-popover-button")
-                .popover(isPresented: $showDatePicker, arrowEdge: .top) {
-                    datePickerPopover
-                        .presentationCompactAdaptation(.popover)
-                }
 
                 if let movedMessage {
                     Image(systemName: "arrow.right.circle.fill")
@@ -115,7 +131,8 @@ struct DayCalendarView: View {
                     .help("Следующий день")
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
+                .controlSize(.large)
+                .font(.system(size: 15, weight: .semibold))
 
                 Button {
                     showHistory.toggle()
@@ -123,7 +140,8 @@ struct DayCalendarView: View {
                     Image(systemName: "clock.arrow.circlepath")
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
+                .controlSize(.large)
+                .font(.system(size: 15, weight: .semibold))
                 .help("История")
                 .accessibilityLabel("История")
                 .accessibilityIdentifier("history-popover-button")
@@ -143,7 +161,8 @@ struct DayCalendarView: View {
                     Image(systemName: "arrow.right.to.line.compact")
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
+                .controlSize(.large)
+                .font(.system(size: 15, weight: .semibold))
                 .disabled(unfinishedCount == 0)
                 .help("Перенести все невыполненные задачи")
                 .accessibilityLabel("На завтра")
@@ -155,7 +174,8 @@ struct DayCalendarView: View {
                     Label("Новая", systemImage: "plus")
                 }
                 .buttonStyle(.borderedProminent)
-                .controlSize(.small)
+                .controlSize(.large)
+                .font(.system(size: 15, weight: .semibold))
                 .accessibilityIdentifier("add-task-button")
             }
 

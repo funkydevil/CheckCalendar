@@ -62,12 +62,14 @@ struct TaskEditorView: View {
             Divider()
 
             Form {
-                Section("Задача") {
+                Section {
                     TextField("", text: $draft.title)
+                        .labelsHidden()
                         .textFieldStyle(.roundedBorder)
                         .focused($titleIsFocused)
                         .accessibilityLabel("Название задачи")
                         .accessibilityIdentifier("task-title-field")
+                        .frame(maxWidth: .infinity)
                     TextEditor(text: $draft.notes)
                         .frame(minHeight: 54)
                         .overlay(alignment: .topLeading) {
@@ -78,6 +80,8 @@ struct TaskEditorView: View {
                                     .allowsHitTesting(false)
                             }
                         }
+                } header: {
+                    taskSectionHeader
                 }
 
                 Section("Когда") {
@@ -86,33 +90,6 @@ struct TaskEditorView: View {
                     Picker("Длительность", selection: $draft.durationMinutes) {
                         ForEach(durations, id: \.self) { minutes in
                             Text(durationText(minutes: minutes)).tag(minutes)
-                        }
-                    }
-                }
-
-                Section("Цвет") {
-                    HStack(spacing: 12) {
-                        ForEach(colors, id: \.self) { hex in
-                            Button {
-                                draft.colorHex = hex
-                            } label: {
-                                Circle()
-                                    .fill(Color(hex: hex).gradient)
-                                    .frame(width: 25, height: 25)
-                                    .overlay {
-                                        if draft.colorHex == hex {
-                                            Image(systemName: "checkmark")
-                                                .font(.caption.bold())
-                                                .foregroundStyle(.white)
-                                        }
-                                    }
-                                    .overlay {
-                                        Circle().stroke(.white.opacity(0.75), lineWidth: draft.colorHex == hex ? 2 : 0)
-                                    }
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Цвет задачи")
-                            .accessibilityValue(draft.colorHex == hex ? "Выбран" : "Не выбран")
                         }
                     }
                 }
@@ -143,6 +120,58 @@ struct TaskEditorView: View {
         }
         .frame(width: 460, height: 500)
         .onAppear { titleIsFocused = true }
+    }
+
+    private var taskSectionHeader: some View {
+        HStack(spacing: 12) {
+            Text("Задача")
+                .fixedSize()
+
+            GeometryReader { geometry in
+                colorSelector(availableWidth: geometry.size.width)
+            }
+            .frame(height: 25)
+        }
+    }
+
+    private func colorSelector(availableWidth: CGFloat) -> some View {
+        let colorCount = CGFloat(colors.count)
+        let minimumSpacing: CGFloat = 4
+        let maximumSpacing: CGFloat = 10
+        let diameter = min(
+            25,
+            max(14, (availableWidth - minimumSpacing * (colorCount - 1)) / colorCount)
+        )
+        let spacing = min(
+            maximumSpacing,
+            max(0, (availableWidth - diameter * colorCount) / (colorCount - 1))
+        )
+
+        return HStack(spacing: spacing) {
+            ForEach(colors, id: \.self) { hex in
+                Button {
+                    draft.colorHex = hex
+                } label: {
+                    Circle()
+                        .fill(Color(hex: hex).gradient)
+                        .frame(width: diameter, height: diameter)
+                        .overlay {
+                            if draft.colorHex == hex {
+                                Image(systemName: "checkmark")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                        .overlay {
+                            Circle().stroke(.white.opacity(0.75), lineWidth: draft.colorHex == hex ? 2 : 0)
+                        }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Цвет задачи")
+                .accessibilityValue(draft.colorHex == hex ? "Выбран" : "Не выбран")
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .trailing)
     }
 
     private var isEditing: Bool {
