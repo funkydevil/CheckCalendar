@@ -53,69 +53,43 @@ struct TaskEditorView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(isEditing ? "Редактировать задачу" : "Новая задача")
-                        .font(.title2.bold())
-                    Text("Запланируйте реальный отрезок времени")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                }
+                Text(isEditing ? "Edit Task" : "New Task")
+                    .font(.title2.bold())
                 Spacer()
             }
-            .padding(24)
+            .padding(18)
 
             Divider()
 
             Form {
-                Section("Задача") {
-                    TextField("Что нужно сделать?", text: $draft.title)
+                Section {
+                    TextField("", text: $draft.title)
+                        .labelsHidden()
+                        .textFieldStyle(.roundedBorder)
                         .focused($titleIsFocused)
+                        .accessibilityLabel("Task name")
                         .accessibilityIdentifier("task-title-field")
+                        .frame(maxWidth: .infinity)
                     TextEditor(text: $draft.notes)
-                        .frame(minHeight: 72)
+                        .frame(minHeight: 54)
                         .overlay(alignment: .topLeading) {
                             if draft.notes.isEmpty {
-                                Text("Заметка (необязательно)")
+                                Text("Note (optional)")
                                     .foregroundStyle(.tertiary)
                                     .padding(.top, 1)
                                     .allowsHitTesting(false)
                             }
                         }
+                } header: {
+                    taskSectionHeader
                 }
 
-                Section("Когда") {
-                    DatePicker("День", selection: $draft.scheduledDay, displayedComponents: .date)
-                    DatePicker("Начало", selection: $draft.startTime, displayedComponents: .hourAndMinute)
-                    Picker("Длительность", selection: $draft.durationMinutes) {
+                Section("When") {
+                    DatePicker("Date", selection: $draft.scheduledDay, displayedComponents: .date)
+                    DatePicker("Start", selection: $draft.startTime, displayedComponents: .hourAndMinute)
+                    Picker("Duration", selection: $draft.durationMinutes) {
                         ForEach(durations, id: \.self) { minutes in
                             Text(durationText(minutes: minutes)).tag(minutes)
-                        }
-                    }
-                }
-
-                Section("Цвет") {
-                    HStack(spacing: 12) {
-                        ForEach(colors, id: \.self) { hex in
-                            Button {
-                                draft.colorHex = hex
-                            } label: {
-                                Circle()
-                                    .fill(Color(hex: hex).gradient)
-                                    .frame(width: 25, height: 25)
-                                    .overlay {
-                                        if draft.colorHex == hex {
-                                            Image(systemName: "checkmark")
-                                                .font(.caption.bold())
-                                                .foregroundStyle(.white)
-                                        }
-                                    }
-                                    .overlay {
-                                        Circle().stroke(.white.opacity(0.75), lineWidth: draft.colorHex == hex ? 2 : 0)
-                                    }
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Цвет задачи")
-                            .accessibilityValue(draft.colorHex == hex ? "Выбран" : "Не выбран")
                         }
                     }
                 }
@@ -126,7 +100,7 @@ struct TaskEditorView: View {
 
             HStack {
                 if isEditing {
-                    Button("Удалить", role: .destructive) {
+                    Button("Delete", role: .destructive) {
                         if case .edit(let task) = route {
                             store.deleteTask(id: task.id)
                             dismiss()
@@ -134,18 +108,70 @@ struct TaskEditorView: View {
                     }
                 }
                 Spacer()
-                Button("Отмена", role: .cancel) { dismiss() }
+                Button("Cancel", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button(isEditing ? "Сохранить" : "Добавить") { save() }
+                Button(isEditing ? "Save" : "Add") { save() }
                     .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
                     .disabled(trimmedTitle.isEmpty)
                     .accessibilityIdentifier("task-save-button")
             }
-            .padding(20)
+            .padding(16)
         }
-        .frame(width: 520, height: 570)
+        .frame(width: 460, height: 500)
         .onAppear { titleIsFocused = true }
+    }
+
+    private var taskSectionHeader: some View {
+        HStack(spacing: 12) {
+            Text("Task")
+                .fixedSize()
+
+            GeometryReader { geometry in
+                colorSelector(availableWidth: geometry.size.width)
+            }
+            .frame(height: 25)
+        }
+    }
+
+    private func colorSelector(availableWidth: CGFloat) -> some View {
+        let colorCount = CGFloat(colors.count)
+        let minimumSpacing: CGFloat = 4
+        let maximumSpacing: CGFloat = 10
+        let diameter = min(
+            25,
+            max(14, (availableWidth - minimumSpacing * (colorCount - 1)) / colorCount)
+        )
+        let spacing = min(
+            maximumSpacing,
+            max(0, (availableWidth - diameter * colorCount) / (colorCount - 1))
+        )
+
+        return HStack(spacing: spacing) {
+            ForEach(colors, id: \.self) { hex in
+                Button {
+                    draft.colorHex = hex
+                } label: {
+                    Circle()
+                        .fill(Color(hex: hex).gradient)
+                        .frame(width: diameter, height: diameter)
+                        .overlay {
+                            if draft.colorHex == hex {
+                                Image(systemName: "checkmark")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                        .overlay {
+                            Circle().stroke(.white.opacity(0.75), lineWidth: draft.colorHex == hex ? 2 : 0)
+                        }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Task color")
+                .accessibilityValue(draft.colorHex == hex ? "Selected" : "Not selected")
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .trailing)
     }
 
     private var isEditing: Bool {

@@ -19,7 +19,7 @@ public final class TaskStore {
             self.persistenceError = nil
         } catch {
             self.tasks = []
-            self.persistenceError = "Не удалось открыть сохранённые задачи: \(error.localizedDescription)"
+            self.persistenceError = "Could not open saved tasks: \(error.localizedDescription)"
         }
     }
 
@@ -99,47 +99,28 @@ public final class TaskStore {
 
     @discardableResult
     public func resizeTask(id: UUID, to requestedDurationMinutes: Int) -> Int? {
-        guard let index = tasks.firstIndex(where: { $0.id == id }), !tasks[index].isMoved else { return nil }
-        let task = tasks[index]
-        let maximumDuration = 1_440 - task.startMinutes
-        let requested = min(max(Self.snapToQuarterHour(requestedDurationMinutes), 15), maximumDuration)
-        let candidates = stride(from: 15, through: requested, by: 15)
-            .filter { isSlotAvailable(for: task, startMinutes: task.startMinutes, durationMinutes: $0) }
-        guard let duration = candidates.last else { return nil }
-
-        tasks[index].durationMinutes = duration
-        tasks[index].lastEditedAt = .now
-        persist()
-        return duration
+        guard let task = tasks.first(where: { $0.id == id }),
+              let plan = TaskResizePlanner.resizeFromBottom(
+                  tasks: tasks(on: task.scheduledDay),
+                  taskID: id,
+                  requestedDurationMinutes: requestedDurationMinutes
+              ),
+              let selectedTiming = plan[id] else { return nil }
+        applyResizePlan(plan)
+        return selectedTiming.durationMinutes
     }
 
     @discardableResult
     public func resizeTaskFromTop(id: UUID, to requestedStartMinutes: Int) -> Int? {
-        guard let index = tasks.firstIndex(where: { $0.id == id }), !tasks[index].isMoved else { return nil }
-        let task = tasks[index]
-        let maximumStart = task.endMinutes - 15
-        let requested = min(max(Self.snapToQuarterHour(requestedStartMinutes), 0), maximumStart)
-        let candidates = stride(from: 0, through: maximumStart, by: 15)
-            .filter {
-                isSlotAvailable(
-                    for: task,
-                    startMinutes: $0,
-                    durationMinutes: task.endMinutes - $0
-                )
-            }
-        guard let startMinutes = candidates.min(by: {
-            let leftDistance = abs($0 - requested)
-            let rightDistance = abs($1 - requested)
-            if leftDistance != rightDistance { return leftDistance < rightDistance }
-            return requested >= task.startMinutes ? $0 > $1 : $0 < $1
-        }) else { return nil }
-
-        tasks[index].startMinutes = startMinutes
-        tasks[index].durationMinutes = task.endMinutes - startMinutes
-        tasks[index].lastEditedAt = .now
-        sortTasks()
-        persist()
-        return startMinutes
+        guard let task = tasks.first(where: { $0.id == id }),
+              let plan = TaskResizePlanner.resizeFromTop(
+                  tasks: tasks(on: task.scheduledDay),
+                  taskID: id,
+                  requestedStartMinutes: requestedStartMinutes
+              ),
+              let selectedTiming = plan[id] else { return nil }
+        applyResizePlan(plan)
+        return selectedTiming.startMinutes
     }
 
     @discardableResult
@@ -223,6 +204,18 @@ public final class TaskStore {
         tasks.sort(by: Self.taskSort)
     }
 
+    private func applyResizePlan(_ plan: TaskResizePlan) {
+        let editedAt = Date.now
+        for (taskID, timing) in plan.timings {
+            guard let index = tasks.firstIndex(where: { $0.id == taskID }) else { continue }
+            tasks[index].startMinutes = timing.startMinutes
+            tasks[index].durationMinutes = timing.durationMinutes
+            tasks[index].lastEditedAt = editedAt
+        }
+        sortTasks()
+        persist()
+    }
+
     private func isSlotAvailable(
         for task: DayTask,
         startMinutes: Int,
@@ -240,7 +233,7 @@ public final class TaskStore {
         do {
             try flush()
         } catch {
-            persistenceError = "Не удалось сохранить изменения: \(error.localizedDescription)"
+            persistenceError = "Could not save changes: \(error.localizedDescription)"
         }
     }
 

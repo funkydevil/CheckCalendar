@@ -8,6 +8,8 @@ struct DayCalendarView: View {
     let onEdit: (DayTask) -> Void
 
     @State private var showMoveConfirmation = false
+    @State private var showDatePicker = false
+    @State private var showHistory = false
     @State private var movedMessage: String?
     private let calendar = Calendar.autoupdatingCurrent
 
@@ -42,95 +44,190 @@ struct DayCalendarView: View {
             )
         }
         .background(AppTheme.canvas)
-        .alert("Перенести на завтра?", isPresented: $showMoveConfirmation) {
-            Button("Отмена", role: .cancel) { }
-            Button("Перенести \(unfinishedCount)") { moveUnfinished() }
+        .alert("Move to Tomorrow?", isPresented: $showMoveConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Move \(unfinishedCount)") { moveUnfinished() }
         } message: {
-            Text("Невыполненные задачи останутся в истории этого дня и появятся завтра как новые пункты.")
+            Text("Unfinished tasks will remain in this day's history and appear tomorrow as new items.")
         }
     }
 
     private var header: some View {
-        VStack(spacing: 14) {
-            HStack(alignment: .center, spacing: 16) {
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 8) {
-                        Text(selectedDate.russianDayTitle.capitalizingFirstLetter)
-                            .font(.system(size: 25, weight: .bold, design: .rounded))
-                        if calendar.isDateInToday(selectedDate) {
-                            Text("Сегодня")
-                                .font(.caption.weight(.semibold))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(AppTheme.accent.opacity(0.13), in: Capsule())
-                                .foregroundStyle(AppTheme.accent)
-                        }
+        VStack(spacing: 9) {
+            HStack(alignment: .center, spacing: 8) {
+                HStack(spacing: 9) {
+                    Button {
+                        showDatePicker.toggle()
+                    } label: {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(AppTheme.accent)
                     }
-                    Text(summaryLine)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                }
+                    .buttonStyle(.plain)
+                    .help("Choose date")
+                    .accessibilityLabel("Choose date")
+                    .accessibilityIdentifier("calendar-icon-button")
 
-                Spacer()
+                    VStack(alignment: .leading, spacing: 1) {
+                        Button {
+                            showDatePicker.toggle()
+                        } label: {
+                            Text(selectedDate.headerDay)
+                                .font(.headline)
+                                .lineLimit(1)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Choose date")
+                        .accessibilityLabel("Choose date: \(selectedDate.headerDay)")
+                        .accessibilityIdentifier("date-popover-button")
+                        .popover(
+                            isPresented: $showDatePicker,
+                            attachmentAnchor: .rect(.bounds),
+                            arrowEdge: .top
+                        ) {
+                            datePickerPopover
+                                .presentationCompactAdaptation(.popover)
+                        }
+
+                        Text(summaryLine)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 10)
+                .layoutPriority(1)
 
                 if let movedMessage {
-                    Label(movedMessage, systemImage: "arrow.right.circle.fill")
-                        .font(.callout.weight(.medium))
+                    Image(systemName: "arrow.right.circle.fill")
                         .foregroundStyle(.green)
+                        .help(movedMessage)
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
 
-                HStack(spacing: 4) {
+                HStack(spacing: 3) {
                     Button { changeDay(by: -1) } label: {
                         Image(systemName: "chevron.left")
                     }
-                    .help("Предыдущий день")
-                    Button("Сегодня") {
+                    .help("Previous day")
+
+                    Button {
                         selectedDate = calendar.startOfDay(for: .now)
+                        movedMessage = nil
+                    } label: {
+                        Image(systemName: "scope")
                     }
                     .disabled(calendar.isDateInToday(selectedDate))
+                    .help("Today")
+                    .accessibilityLabel("Today")
+
                     Button { changeDay(by: 1) } label: {
                         Image(systemName: "chevron.right")
                     }
-                    .help("Следующий день")
+                    .help("Next day")
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.large)
+                .font(.system(size: 15, weight: .semibold))
+
+                Button {
+                    showHistory.toggle()
+                } label: {
+                    Image(systemName: "clock.arrow.circlepath")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .font(.system(size: 15, weight: .semibold))
+                .help("History")
+                .accessibilityLabel("History")
+                .accessibilityIdentifier("history-popover-button")
+                .popover(isPresented: $showHistory, arrowEdge: .top) {
+                    HistoryView { date in
+                        selectedDate = calendar.startOfDay(for: date)
+                        movedMessage = nil
+                        showHistory = false
+                    }
+                    .frame(width: 420, height: 480)
+                    .presentationCompactAdaptation(.popover)
+                }
 
                 Button {
                     showMoveConfirmation = true
                 } label: {
-                    Label("На завтра", systemImage: "arrow.right.to.line.compact")
+                    Image(systemName: "arrow.right.to.line.compact")
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.large)
+                .font(.system(size: 15, weight: .semibold))
                 .disabled(unfinishedCount == 0)
-                .help("Перенести все невыполненные задачи")
+                .help("Move all unfinished tasks to tomorrow")
+                .accessibilityLabel("Move to Tomorrow")
                 .accessibilityIdentifier("move-unfinished-button")
 
                 Button {
                     onAdd(defaultStartMinute)
                 } label: {
-                    Label("Новая задача", systemImage: "plus")
+                    Image(systemName: "plus")
+                        .font(.system(size: 16, weight: .semibold))
+                        .frame(width: 18, height: 18, alignment: .center)
                 }
                 .buttonStyle(.borderedProminent)
-                .keyboardShortcut("n", modifiers: [.command, .shift])
+                .controlSize(.large)
+                .padding(.trailing, 10)
+                .accessibilityLabel("New Task")
                 .accessibilityIdentifier("add-task-button")
             }
 
             ProgressView(value: summary.progress)
                 .tint(summary.remaining == 0 && summary.total > 0 ? .green : AppTheme.accent)
-                .accessibilityLabel("Прогресс дня")
-                .accessibilityValue("\(summary.resolved) из \(summary.total)")
+                .accessibilityLabel("Day progress")
+                .accessibilityValue("\(summary.resolved) of \(summary.total)")
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 18)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
         .background(.bar)
     }
 
+    private var datePickerPopover: some View {
+        VStack(spacing: 10) {
+            DatePicker(
+                "Date",
+                selection: Binding(
+                    get: { selectedDate },
+                    set: { date in
+                        selectedDate = calendar.startOfDay(for: date)
+                        movedMessage = nil
+                        showDatePicker = false
+                    }
+                ),
+                displayedComponents: .date
+            )
+            .labelsHidden()
+            .datePickerStyle(.graphical)
+            .accessibilityIdentifier("calendar-date-picker")
+
+            Divider()
+
+            Button("Today") {
+                selectedDate = calendar.startOfDay(for: .now)
+                movedMessage = nil
+                showDatePicker = false
+            }
+            .buttonStyle(.bordered)
+            .disabled(calendar.isDateInToday(selectedDate))
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 10)
+        .frame(width: 170)
+    }
+
     private var summaryLine: String {
-        guard summary.total > 0 else { return "Свободный день — добавьте первую задачу" }
-        var parts = ["\(summary.completed) из \(summary.total) выполнено"]
-        if summary.moved > 0 { parts.append("\(summary.moved) перенесено") }
-        parts.append("\(durationText(minutes: summary.scheduledMinutes)) в плане")
+        guard summary.total > 0 else { return "Open day — add your first task" }
+        var parts = ["\(summary.completed) of \(summary.total) completed"]
+        if summary.moved > 0 { parts.append("\(summary.moved) moved") }
+        parts.append("\(durationText(minutes: summary.scheduledMinutes)) planned")
         return parts.joined(separator: "  •  ")
     }
 
@@ -154,17 +251,12 @@ struct DayCalendarView: View {
     private func moveUnfinished() {
         let count = store.moveUnfinishedTasksToTomorrow(from: selectedDate)
         withAnimation(.snappy) {
-            movedMessage = count == 1 ? "1 задача перенесена" : "\(count) задач перенесено"
+            movedMessage = count == 1 ? "1 task moved" : "\(count) tasks moved"
         }
     }
 }
 
 private struct TimelineViewContent: View {
-    private enum ResizeEdge {
-        case top
-        case bottom
-    }
-
     let date: Date
     let tasks: [DayTask]
     let onAdd: (Int) -> Void
@@ -176,8 +268,7 @@ private struct TimelineViewContent: View {
     let onResizeFromTop: (UUID, Int) -> Void
 
     @State private var resizingTaskID: UUID?
-    @State private var resizingEdge: ResizeEdge?
-    @State private var resizeTranslation: CGFloat = 0
+    @State private var resizePlan: TaskResizePlan?
 
     private let hourHeight: CGFloat = 74
     private let labelWidth: CGFloat = 64
@@ -231,44 +322,51 @@ private struct TimelineViewContent: View {
 
     @ViewBuilder
     private func taskBlocks(totalWidth: CGFloat) -> some View {
-        let placements = TaskLayoutEngine.placements(for: tasks)
+        let originalTasksByID = Dictionary(uniqueKeysWithValues: tasks.map { ($0.id, $0) })
+        let placements = TaskLayoutEngine.placements(for: renderedTasks)
         let contentX = labelWidth + 14
         let availableWidth = max(totalWidth - contentX - 24, 240)
 
         ForEach(placements) { placement in
+            let originalTask = originalTasksByID[placement.task.id] ?? placement.task
             let spacing: CGFloat = 6
             let laneWidth = (availableWidth - spacing * CGFloat(placement.laneCount - 1)) / CGFloat(placement.laneCount)
             let x = contentX + CGFloat(placement.lane) * (laneWidth + spacing)
-            let previewStart = previewStartMinutes(for: placement.task)
-            let previewDuration = previewDurationMinutes(for: placement.task)
-            let y = CGFloat(previewStart) / 60 * hourHeight + 3
-            let rawHeight = CGFloat(previewDuration) / 60 * hourHeight - 6
-            let height = min(max(rawHeight, 38), hourHeight * 24 - y - 3)
-            let moveRange = (3 - y)...(hourHeight * 24 - height - 3 - y)
+            let timelineFrame = TaskLayoutEngine.timelineFrame(
+                startMinutes: placement.task.startMinutes,
+                durationMinutes: placement.task.durationMinutes,
+                hourHeight: Double(hourHeight)
+            )
+            let y = CGFloat(timelineFrame.minY)
+            let height = min(CGFloat(timelineFrame.height), hourHeight * 24 - y - 2)
+            let moveRange = (2 - y)...(hourHeight * 24 - height - 2 - y)
 
             TaskBlockView(
                 task: placement.task,
+                isCompact: placement.task.durationMinutes <= 30,
                 moveRange: moveRange,
                 onToggle: { onToggle(placement.task.id) },
-                onEdit: { onEdit(placement.task) },
+                onEdit: { onEdit(originalTask) },
                 onDelete: { onDelete(placement.task.id) },
                 onMoveEnded: { translation in
-                    let requested = placement.task.startMinutes + snappedMinuteDelta(for: translation)
+                    let requested = originalTask.startMinutes + snappedMinuteDelta(for: translation)
                     onMove(placement.task.id, requested)
                 },
                 onTopResizeChanged: { translation in
-                    updateResizePreview(for: placement.task.id, edge: .top, translation: translation)
+                    let requested = originalTask.startMinutes + snappedMinuteDelta(for: translation)
+                    updateTopResizePreview(for: placement.task.id, requestedStartMinutes: requested)
                 },
                 onTopResizeEnded: { translation in
-                    let requested = placement.task.startMinutes + snappedMinuteDelta(for: translation)
+                    let requested = originalTask.startMinutes + snappedMinuteDelta(for: translation)
                     clearResizePreview()
                     onResizeFromTop(placement.task.id, requested)
                 },
                 onBottomResizeChanged: { translation in
-                    updateResizePreview(for: placement.task.id, edge: .bottom, translation: translation)
+                    let requested = originalTask.durationMinutes + snappedMinuteDelta(for: translation)
+                    updateBottomResizePreview(for: placement.task.id, requestedDurationMinutes: requested)
                 },
                 onBottomResizeEnded: { translation in
-                    let requested = placement.task.durationMinutes + snappedMinuteDelta(for: translation)
+                    let requested = originalTask.durationMinutes + snappedMinuteDelta(for: translation)
                     clearResizePreview()
                     onResize(placement.task.id, requested)
                 }
@@ -279,24 +377,13 @@ private struct TimelineViewContent: View {
         }
     }
 
-    private func previewStartMinutes(for task: DayTask) -> Int {
-        guard resizingTaskID == task.id, resizingEdge == .top else { return task.startMinutes }
-        return min(
-            max(task.startMinutes + snappedMinuteDelta(for: resizeTranslation), 0),
-            task.endMinutes - 15
-        )
-    }
-
-    private func previewDurationMinutes(for task: DayTask) -> Int {
-        guard resizingTaskID == task.id else { return task.durationMinutes }
-        switch resizingEdge {
-        case .top:
-            return task.endMinutes - previewStartMinutes(for: task)
-        case .bottom:
-            let maximumDuration = 1_440 - task.startMinutes
-            return min(max(task.durationMinutes + snappedMinuteDelta(for: resizeTranslation), 15), maximumDuration)
-        case nil:
-            return task.durationMinutes
+    private var renderedTasks: [DayTask] {
+        tasks.map { task in
+            guard let timing = resizePlan?[task.id] else { return task }
+            var rendered = task
+            rendered.startMinutes = timing.startMinutes
+            rendered.durationMinutes = timing.durationMinutes
+            return rendered
         }
     }
 
@@ -307,14 +394,27 @@ private struct TimelineViewContent: View {
 
     private func clearResizePreview() {
         resizingTaskID = nil
-        resizingEdge = nil
-        resizeTranslation = 0
+        resizePlan = nil
     }
 
-    private func updateResizePreview(for taskID: UUID, edge: ResizeEdge, translation: CGFloat) {
+    private func updateTopResizePreview(for taskID: UUID, requestedStartMinutes: Int) {
+        let plan = TaskResizePlanner.resizeFromTop(
+            tasks: tasks,
+            taskID: taskID,
+            requestedStartMinutes: requestedStartMinutes
+        )
         resizingTaskID = taskID
-        resizingEdge = edge
-        resizeTranslation = translation
+        if resizePlan != plan { resizePlan = plan }
+    }
+
+    private func updateBottomResizePreview(for taskID: UUID, requestedDurationMinutes: Int) {
+        let plan = TaskResizePlanner.resizeFromBottom(
+            tasks: tasks,
+            taskID: taskID,
+            requestedDurationMinutes: requestedDurationMinutes
+        )
+        resizingTaskID = taskID
+        if resizePlan != plan { resizePlan = plan }
     }
 
     @ViewBuilder

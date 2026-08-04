@@ -22,20 +22,30 @@ extension Color {
 }
 
 extension Date {
-    var russianDayTitle: String {
+    var dayTitle: String {
         formatted(
             Date.FormatStyle(date: .complete, time: .omitted)
-                .locale(Locale(identifier: "ru_RU"))
+                .locale(Locale(identifier: "en_US"))
         )
     }
 
-    var russianShortDay: String {
+    var shortDay: String {
         formatted(
             Date.FormatStyle()
                 .day(.twoDigits)
                 .month(.wide)
                 .year()
-                .locale(Locale(identifier: "ru_RU"))
+                .locale(Locale(identifier: "en_US"))
+        )
+    }
+
+    var headerDay: String {
+        formatted(
+            Date.FormatStyle()
+                .weekday(.abbreviated)
+                .day()
+                .month(.abbreviated)
+                .locale(Locale(identifier: "en_US"))
         )
     }
 }
@@ -55,7 +65,8 @@ func timeText(minutes: Int) -> String {
 func durationText(minutes: Int) -> String {
     let hours = minutes / 60
     let rest = minutes % 60
-    if hours == 0 { return "\(rest) мин" }
-    if rest == 0 { return "\(hours) ч" }
-    return "\(hours) ч \(rest) мин"
+    if hours == 0 { return "\(rest) min" }
+    let hourText = hours == 1 ? "1 hr" : "\(hours) hrs"
+    if rest == 0 { return hourText }
+    return "\(hourText) \(rest) min"
 }
