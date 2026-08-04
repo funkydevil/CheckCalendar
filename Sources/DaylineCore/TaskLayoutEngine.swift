@@ -8,7 +8,28 @@ public struct TaskPlacement: Identifiable, Hashable, Sendable {
     public var id: UUID { task.id }
 }
 
+public struct TimelineBlockFrame: Equatable, Sendable {
+    public let minY: Double
+    public let height: Double
+
+    public var maxY: Double { minY + height }
+}
+
 public enum TaskLayoutEngine {
+    public static func timelineFrame(
+        startMinutes: Int,
+        durationMinutes: Int,
+        hourHeight: Double,
+        verticalInset: Double = 2
+    ) -> TimelineBlockFrame {
+        let minY = Double(startMinutes) / 60 * hourHeight + verticalInset
+        let durationHeight = Double(durationMinutes) / 60 * hourHeight
+        return TimelineBlockFrame(
+            minY: minY,
+            height: max(durationHeight - verticalInset * 2, 1)
+        )
+    }
+
     public static func placements(for tasks: [DayTask]) -> [TaskPlacement] {
         let sorted = tasks.sorted {
             if $0.startMinutes != $1.startMinutes { return $0.startMinutes < $1.startMinutes }

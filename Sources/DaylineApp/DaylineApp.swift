@@ -9,9 +9,9 @@ struct DaylineApp: App {
         WindowGroup("День за днём") {
             RootView()
                 .environment(store)
-                .frame(minWidth: 920, minHeight: 640)
+                .frame(minWidth: 640, minHeight: 480)
         }
-        .defaultSize(width: 1_150, height: 780)
+        .defaultSize(width: 820, height: 620)
         .windowToolbarStyle(.unified)
         .commands {
             CommandGroup(replacing: .newItem) {

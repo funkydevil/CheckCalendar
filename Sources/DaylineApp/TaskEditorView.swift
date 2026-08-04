@@ -53,26 +53,23 @@ struct TaskEditorView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(isEditing ? "Редактировать задачу" : "Новая задача")
-                        .font(.title2.bold())
-                    Text("Запланируйте реальный отрезок времени")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                }
+                Text(isEditing ? "Редактировать задачу" : "Новая задача")
+                    .font(.title2.bold())
                 Spacer()
             }
-            .padding(24)
+            .padding(18)
 
             Divider()
 
             Form {
                 Section("Задача") {
-                    TextField("Что нужно сделать?", text: $draft.title)
+                    TextField("", text: $draft.title)
+                        .textFieldStyle(.roundedBorder)
                         .focused($titleIsFocused)
+                        .accessibilityLabel("Название задачи")
                         .accessibilityIdentifier("task-title-field")
                     TextEditor(text: $draft.notes)
-                        .frame(minHeight: 72)
+                        .frame(minHeight: 54)
                         .overlay(alignment: .topLeading) {
                             if draft.notes.isEmpty {
                                 Text("Заметка (необязательно)")
@@ -142,9 +139,9 @@ struct TaskEditorView: View {
                     .disabled(trimmedTitle.isEmpty)
                     .accessibilityIdentifier("task-save-button")
             }
-            .padding(20)
+            .padding(16)
         }
-        .frame(width: 520, height: 570)
+        .frame(width: 460, height: 500)
         .onAppear { titleIsFocused = true }
     }
 

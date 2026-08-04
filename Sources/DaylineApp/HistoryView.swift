@@ -8,21 +8,17 @@ struct HistoryView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("История")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                    Text("Все запланированные дни и их результат")
-                        .foregroundStyle(.secondary)
-                }
+                Text("История")
+                    .font(.title2.bold())
                 Spacer()
                 Text("\(store.history.count) \(dayWord(store.history.count))")
-                    .font(.callout.weight(.medium))
+                    .font(.caption.weight(.medium))
                     .foregroundStyle(.secondary)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 4)
                     .background(AppTheme.subtle, in: Capsule())
             }
-            .padding(24)
+            .padding(16)
             .background(.bar)
 
             Divider()
@@ -36,16 +32,14 @@ struct HistoryView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 12) {
+                    LazyVStack(spacing: 8) {
                         ForEach(store.history) { summary in
                             HistoryCard(summary: summary) {
                                 onOpenDay(summary.date)
                             }
                         }
                     }
-                    .padding(24)
-                    .frame(maxWidth: 760)
-                    .frame(maxWidth: .infinity)
+                    .padding(12)
                 }
             }
         }
@@ -68,63 +62,57 @@ private struct HistoryCard: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 18) {
+            HStack(spacing: 12) {
                 ZStack {
                     Circle()
-                        .stroke(AppTheme.line, lineWidth: 6)
+                        .stroke(AppTheme.line, lineWidth: 5)
                     Circle()
                         .trim(from: 0, to: summary.progress)
                         .stroke(
                             summary.remaining == 0 ? Color.green : AppTheme.accent,
-                            style: StrokeStyle(lineWidth: 6, lineCap: .round)
+                            style: StrokeStyle(lineWidth: 5, lineCap: .round)
                         )
                         .rotationEffect(.degrees(-90))
                     Text("\(Int(summary.progress * 100))%")
                         .font(.caption2.bold().monospacedDigit())
                 }
-                .frame(width: 56, height: 56)
+                .frame(width: 44, height: 44)
 
-                VStack(alignment: .leading, spacing: 5) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(summary.date.russianShortDay.capitalizingFirstLetter)
                         .font(.headline)
-                    HStack(spacing: 12) {
-                        Label("\(summary.completed) выполнено", systemImage: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                        if summary.moved > 0 {
-                            Label("\(summary.moved) перенесено", systemImage: "arrow.right.circle.fill")
-                                .foregroundStyle(.orange)
-                        }
-                        if summary.remaining > 0 {
-                            Label("\(summary.remaining) осталось", systemImage: "circle")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .font(.caption)
+                    Text(detailLine)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
 
                 Spacer()
 
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text(durationText(minutes: summary.scheduledMinutes))
-                        .font(.callout.weight(.semibold))
-                    Text("\(summary.total) задач")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                Text(durationText(minutes: summary.scheduledMinutes))
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
 
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(.tertiary)
             }
-            .padding(18)
-            .background(AppTheme.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .padding(12)
+            .background(AppTheme.card, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                RoundedRectangle(cornerRadius: 11, style: .continuous)
                     .stroke(AppTheme.line, lineWidth: 1)
             }
-            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(summary.date.russianShortDay), \(summary.completed) из \(summary.total) выполнено")
+    }
+
+    private var detailLine: String {
+        var parts = ["\(summary.completed)/\(summary.total) выполнено"]
+        if summary.moved > 0 { parts.append("\(summary.moved) перенесено") }
+        if summary.remaining > 0 { parts.append("\(summary.remaining) осталось") }
+        return parts.joined(separator: "  •  ")
     }
 }

@@ -38,6 +38,16 @@ extension Date {
                 .locale(Locale(identifier: "ru_RU"))
         )
     }
+
+    var russianHeaderDay: String {
+        formatted(
+            Date.FormatStyle()
+                .weekday(.abbreviated)
+                .day()
+                .month(.abbreviated)
+                .locale(Locale(identifier: "ru_RU"))
+        )
+    }
 }
 
 extension String {

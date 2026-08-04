@@ -8,6 +8,8 @@ struct DayCalendarView: View {
     let onEdit: (DayTask) -> Void
 
     @State private var showMoveConfirmation = false
+    @State private var showDatePicker = false
+    @State private var showHistory = false
     @State private var movedMessage: String?
     private let calendar = Calendar.autoupdatingCurrent
 
@@ -51,68 +53,109 @@ struct DayCalendarView: View {
     }
 
     private var header: some View {
-        VStack(spacing: 14) {
-            HStack(alignment: .center, spacing: 16) {
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 8) {
-                        Text(selectedDate.russianDayTitle.capitalizingFirstLetter)
-                            .font(.system(size: 25, weight: .bold, design: .rounded))
-                        if calendar.isDateInToday(selectedDate) {
-                            Text("Сегодня")
-                                .font(.caption.weight(.semibold))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(AppTheme.accent.opacity(0.13), in: Capsule())
-                                .foregroundStyle(AppTheme.accent)
+        VStack(spacing: 9) {
+            HStack(alignment: .center, spacing: 8) {
+                Button {
+                    showDatePicker.toggle()
+                } label: {
+                    HStack(spacing: 9) {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(AppTheme.accent)
+
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(selectedDate.russianHeaderDay.capitalizingFirstLetter)
+                                .font(.headline)
+                                .lineLimit(1)
+                            Text(summaryLine)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                         }
                     }
-                    Text(summaryLine)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .layoutPriority(1)
+                .help("Выбрать дату")
+                .accessibilityIdentifier("date-popover-button")
+                .popover(isPresented: $showDatePicker, arrowEdge: .top) {
+                    datePickerPopover
+                        .presentationCompactAdaptation(.popover)
                 }
 
-                Spacer()
-
                 if let movedMessage {
-                    Label(movedMessage, systemImage: "arrow.right.circle.fill")
-                        .font(.callout.weight(.medium))
+                    Image(systemName: "arrow.right.circle.fill")
                         .foregroundStyle(.green)
+                        .help(movedMessage)
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
 
-                HStack(spacing: 4) {
+                HStack(spacing: 3) {
                     Button { changeDay(by: -1) } label: {
                         Image(systemName: "chevron.left")
                     }
                     .help("Предыдущий день")
-                    Button("Сегодня") {
+
+                    Button {
                         selectedDate = calendar.startOfDay(for: .now)
+                        movedMessage = nil
+                    } label: {
+                        Image(systemName: "scope")
                     }
                     .disabled(calendar.isDateInToday(selectedDate))
+                    .help("Сегодня")
+                    .accessibilityLabel("Сегодня")
+
                     Button { changeDay(by: 1) } label: {
                         Image(systemName: "chevron.right")
                     }
                     .help("Следующий день")
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.small)
+
+                Button {
+                    showHistory.toggle()
+                } label: {
+                    Image(systemName: "clock.arrow.circlepath")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .help("История")
+                .accessibilityLabel("История")
+                .accessibilityIdentifier("history-popover-button")
+                .popover(isPresented: $showHistory, arrowEdge: .top) {
+                    HistoryView { date in
+                        selectedDate = calendar.startOfDay(for: date)
+                        movedMessage = nil
+                        showHistory = false
+                    }
+                    .frame(width: 420, height: 480)
+                    .presentationCompactAdaptation(.popover)
+                }
 
                 Button {
                     showMoveConfirmation = true
                 } label: {
-                    Label("На завтра", systemImage: "arrow.right.to.line.compact")
+                    Image(systemName: "arrow.right.to.line.compact")
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.small)
                 .disabled(unfinishedCount == 0)
                 .help("Перенести все невыполненные задачи")
+                .accessibilityLabel("На завтра")
                 .accessibilityIdentifier("move-unfinished-button")
 
                 Button {
                     onAdd(defaultStartMinute)
                 } label: {
-                    Label("Новая задача", systemImage: "plus")
+                    Label("Новая", systemImage: "plus")
                 }
                 .buttonStyle(.borderedProminent)
-                .keyboardShortcut("n", modifiers: [.command, .shift])
+                .controlSize(.small)
                 .accessibilityIdentifier("add-task-button")
             }
 
@@ -121,9 +164,41 @@ struct DayCalendarView: View {
                 .accessibilityLabel("Прогресс дня")
                 .accessibilityValue("\(summary.resolved) из \(summary.total)")
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 18)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
         .background(.bar)
+    }
+
+    private var datePickerPopover: some View {
+        VStack(spacing: 10) {
+            DatePicker(
+                "Дата",
+                selection: Binding(
+                    get: { selectedDate },
+                    set: { date in
+                        selectedDate = calendar.startOfDay(for: date)
+                        movedMessage = nil
+                        showDatePicker = false
+                    }
+                ),
+                displayedComponents: .date
+            )
+            .labelsHidden()
+            .datePickerStyle(.graphical)
+            .accessibilityIdentifier("calendar-date-picker")
+
+            Divider()
+
+            Button("Сегодня") {
+                selectedDate = calendar.startOfDay(for: .now)
+                movedMessage = nil
+                showDatePicker = false
+            }
+            .buttonStyle(.bordered)
+            .disabled(calendar.isDateInToday(selectedDate))
+        }
+        .padding(12)
+        .frame(width: 290)
     }
 
     private var summaryLine: String {
@@ -241,13 +316,18 @@ private struct TimelineViewContent: View {
             let x = contentX + CGFloat(placement.lane) * (laneWidth + spacing)
             let previewStart = previewStartMinutes(for: placement.task)
             let previewDuration = previewDurationMinutes(for: placement.task)
-            let y = CGFloat(previewStart) / 60 * hourHeight + 3
-            let rawHeight = CGFloat(previewDuration) / 60 * hourHeight - 6
-            let height = min(max(rawHeight, 38), hourHeight * 24 - y - 3)
-            let moveRange = (3 - y)...(hourHeight * 24 - height - 3 - y)
+            let timelineFrame = TaskLayoutEngine.timelineFrame(
+                startMinutes: previewStart,
+                durationMinutes: previewDuration,
+                hourHeight: Double(hourHeight)
+            )
+            let y = CGFloat(timelineFrame.minY)
+            let height = min(CGFloat(timelineFrame.height), hourHeight * 24 - y - 2)
+            let moveRange = (2 - y)...(hourHeight * 24 - height - 2 - y)
 
             TaskBlockView(
                 task: placement.task,
+                isCompact: previewDuration <= 30,
                 moveRange: moveRange,
                 onToggle: { onToggle(placement.task.id) },
                 onEdit: { onEdit(placement.task) },

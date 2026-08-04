@@ -86,6 +86,22 @@ final class TaskStoreTests: XCTestCase {
         XCTAssertEqual(secondPlacement?.lane, thirdPlacement?.lane)
     }
 
+    func testBackToBackThirtyMinuteBlocksDoNotOverlapVisually() {
+        let first = TaskLayoutEngine.timelineFrame(
+            startMinutes: 9 * 60,
+            durationMinutes: 30,
+            hourHeight: 74
+        )
+        let second = TaskLayoutEngine.timelineFrame(
+            startMinutes: 9 * 60 + 30,
+            durationMinutes: 30,
+            hourHeight: 74
+        )
+
+        XCTAssertLessThanOrEqual(first.maxY, second.minY)
+        XCTAssertEqual(first.height, 33, accuracy: 0.001)
+    }
+
     func testLateTaskKeepsMinimumDurationInsideDay() {
         let fixture = makeFixtureURL()
         defer { try? FileManager.default.removeItem(at: fixture.deletingLastPathComponent()) }
