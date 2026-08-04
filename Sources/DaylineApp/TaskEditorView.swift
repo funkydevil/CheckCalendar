@@ -1,4 +1,3 @@
-import DaylineCore
 import SwiftUI
 
 private struct TaskEditorDraft {

@@ -1,4 +1,3 @@
-import DaylineCore
 import SwiftUI
 
 struct TaskBlockView: View {

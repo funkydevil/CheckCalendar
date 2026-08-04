@@ -14,21 +14,22 @@ A native calendar checklist for macOS. Tasks appear on a 24-hour timeline, their
 - Create a task by double-clicking the timeline or pressing `⌘N`.
 - Tasks created with the toolbar button automatically start after the day's final task.
 
-## Run
+## Open and Run
 
 ```bash
-swift run Dayline
+open Dayline.xcodeproj
 ```
 
-## Build the App
+Choose the `Dayline` scheme in Xcode and press `⌘R`.
 
-```bash
-./scripts/build-app.sh
-open dist/Dayline.app
-```
+## App Store Archive
+
+1. Select a development team in the Dayline target's Signing & Capabilities tab.
+2. Replace `com.funkydevil.Dayline` with the bundle identifier registered in App Store Connect.
+3. Choose **Product → Archive**, then **Distribute App → App Store Connect**.
 
 ## Tests
 
 ```bash
-swift test
+xcodebuild -project Dayline.xcodeproj -scheme Dayline -destination 'platform=macOS' test
 ```

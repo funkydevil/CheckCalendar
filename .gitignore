@@ -1,5 +1,6 @@
 .build/
 .swiftpm/
+.derived/
 dist/
 .DS_Store
 .swarm/

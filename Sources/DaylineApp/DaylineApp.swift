@@ -1,4 +1,3 @@
-import DaylineCore
 import SwiftUI
 
 @main

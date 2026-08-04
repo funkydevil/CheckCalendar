@@ -1,5 +1,5 @@
 import XCTest
-@testable import DaylineCore
+@testable import Dayline
 
 @MainActor
 final class TaskStoreTests: XCTestCase {
