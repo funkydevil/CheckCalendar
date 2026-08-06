@@ -50,12 +50,32 @@ final class TaskStoreTests: XCTestCase {
         XCTAssertEqual(duplicate?.title, original.title)
         XCTAssertEqual(duplicate?.notes, original.notes)
         XCTAssertEqual(duplicate?.scheduledDay, original.scheduledDay)
-        XCTAssertEqual(duplicate?.startMinutes, original.startMinutes)
+        XCTAssertEqual(duplicate?.startMinutes, original.endMinutes)
         XCTAssertEqual(duplicate?.durationMinutes, original.durationMinutes)
         XCTAssertEqual(duplicate?.colorHex, original.colorHex)
         XCTAssertFalse(duplicate?.isCompleted ?? true)
         XCTAssertNil(duplicate?.completedAt)
         XCTAssertEqual(store.tasks.count, 2)
+    }
+
+    func testDuplicateTaskMovesToNextDayWhenItDoesNotFitAfterOriginal() {
+        let fixture = makeFixtureURL()
+        defer { try? FileManager.default.removeItem(at: fixture.deletingLastPathComponent()) }
+        let day = makeDate(year: 2026, month: 8, day: 3)
+        let store = TaskStore(fileURL: fixture, calendar: utcCalendar)
+        let original = store.addTask(
+            title: "Вечерняя задача",
+            scheduledDay: day,
+            startMinutes: 22 * 60,
+            durationMinutes: 120,
+            colorHex: "5B7CFA"
+        )
+
+        let duplicate = store.duplicateTask(id: original.id)
+
+        XCTAssertEqual(duplicate?.scheduledDay, utcCalendar.date(byAdding: .day, value: 1, to: day))
+        XCTAssertEqual(duplicate?.startMinutes, 0)
+        XCTAssertEqual(duplicate?.durationMinutes, original.durationMinutes)
     }
 
     func testMovingUnfinishedPreservesHistoryAndIsIdempotent() {

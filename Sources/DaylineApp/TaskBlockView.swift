@@ -148,12 +148,12 @@ struct TaskBlockView: View {
         Color.clear
             .frame(height: resizeHandleHeight)
             .contentShape(Rectangle())
-            .overlay(alignment: .top) {
-                resizeHighlight(for: .top)
-            }
             .gesture(topResizeGesture)
             .disabled(task.isMoved)
             .padding(.leading, resizeHandleLeadingInset)
+            .overlay(alignment: .top) {
+                resizeHighlight(for: .top)
+            }
             .onHover { updateHover($0, edge: .top) }
             .help("Drag the top edge to change the start time")
             .accessibilityLabel("Change task start time")
@@ -164,12 +164,12 @@ struct TaskBlockView: View {
         Color.clear
             .frame(height: resizeHandleHeight)
             .contentShape(Rectangle())
-            .overlay(alignment: .bottom) {
-                resizeHighlight(for: .bottom)
-            }
             .gesture(bottomResizeGesture)
             .disabled(task.isMoved)
             .padding(.leading, resizeHandleLeadingInset)
+            .overlay(alignment: .bottom) {
+                resizeHighlight(for: .bottom)
+            }
             .onHover { updateHover($0, edge: .bottom) }
             .help("Drag the bottom edge to change the end time")
             .accessibilityLabel("Change task end time")
@@ -179,12 +179,6 @@ struct TaskBlockView: View {
     private func blockBackground(color: Color) -> some View {
         RoundedRectangle(cornerRadius: 10, style: .continuous)
             .fill(color.opacity(task.isCompleted || task.isMoved ? 0.09 : 0.16))
-            .overlay(alignment: .leading) {
-                Capsule(style: .continuous)
-                .fill(color.opacity(task.isMoved ? 0.35 : 0.9))
-                .frame(width: 4)
-                .padding(.vertical, 3)
-            }
             .overlay {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .stroke(color.opacity(isHovering ? 0.55 : 0.18), lineWidth: 1)

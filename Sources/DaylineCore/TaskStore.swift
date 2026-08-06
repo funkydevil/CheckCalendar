@@ -78,11 +78,18 @@ public final class TaskStore {
     @discardableResult
     public func duplicateTask(id: UUID) -> DayTask? {
         guard let source = tasks.first(where: { $0.id == id }), !source.isMoved else { return nil }
+        let proposedStart = source.endMinutes
+        let fitsOnSourceDay = proposedStart + source.durationMinutes <= 1_440
+        let duplicateDay = fitsOnSourceDay
+            ? source.scheduledDay
+            : calendar.date(byAdding: .day, value: 1, to: source.scheduledDay) ?? source.scheduledDay
+        let duplicateStart = fitsOnSourceDay ? proposedStart : 0
+
         return addTask(
             title: source.title,
             notes: source.notes,
-            scheduledDay: source.scheduledDay,
-            startMinutes: source.startMinutes,
+            scheduledDay: duplicateDay,
+            startMinutes: duplicateStart,
             durationMinutes: source.durationMinutes,
             colorHex: source.colorHex
         )
