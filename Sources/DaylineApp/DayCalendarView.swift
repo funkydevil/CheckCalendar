@@ -30,6 +30,11 @@ struct DayCalendarView: View {
                         store.toggleCompletion(id: id)
                     }
                 },
+                onDuplicate: { id in
+                    withAnimation(.snappy(duration: 0.25)) {
+                        _ = store.duplicateTask(id: id)
+                    }
+                },
                 onDelete: store.deleteTask,
                 onMove: { id, startMinutes in
                     _ = store.moveTask(id: id, to: startMinutes)
@@ -261,6 +266,7 @@ private struct TimelineViewContent: View {
     let onAdd: (Int) -> Void
     let onEdit: (DayTask) -> Void
     let onToggle: (UUID) -> Void
+    let onDuplicate: (UUID) -> Void
     let onDelete: (UUID) -> Void
     let onMove: (UUID, Int) -> Void
     let onResize: (UUID, Int) -> Void
@@ -346,6 +352,7 @@ private struct TimelineViewContent: View {
                 moveRange: moveRange,
                 onToggle: { onToggle(placement.task.id) },
                 onEdit: { onEdit(originalTask) },
+                onDuplicate: { onDuplicate(placement.task.id) },
                 onDelete: { onDelete(placement.task.id) },
                 onMoveEnded: { translation in
                     let requested = originalTask.startMinutes + snappedMinuteDelta(for: translation)

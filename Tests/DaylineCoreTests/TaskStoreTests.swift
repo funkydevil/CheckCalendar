@@ -28,6 +28,36 @@ final class TaskStoreTests: XCTestCase {
         XCTAssertNotNil(reloaded.tasks[0].completedAt)
     }
 
+    func testDuplicateTaskCopiesContentAndResetsCompletionState() {
+        let fixture = makeFixtureURL()
+        defer { try? FileManager.default.removeItem(at: fixture.deletingLastPathComponent()) }
+        let day = makeDate(year: 2026, month: 8, day: 3)
+        let store = TaskStore(fileURL: fixture, calendar: utcCalendar)
+        let original = store.addTask(
+            title: "Повторить задачу",
+            notes: "С теми же настройками",
+            scheduledDay: day,
+            startMinutes: 615,
+            durationMinutes: 120,
+            colorHex: "8B5CF6"
+        )
+        store.toggleCompletion(id: original.id)
+
+        let duplicate = store.duplicateTask(id: original.id)
+
+        XCTAssertNotNil(duplicate)
+        XCTAssertNotEqual(duplicate?.id, original.id)
+        XCTAssertEqual(duplicate?.title, original.title)
+        XCTAssertEqual(duplicate?.notes, original.notes)
+        XCTAssertEqual(duplicate?.scheduledDay, original.scheduledDay)
+        XCTAssertEqual(duplicate?.startMinutes, original.startMinutes)
+        XCTAssertEqual(duplicate?.durationMinutes, original.durationMinutes)
+        XCTAssertEqual(duplicate?.colorHex, original.colorHex)
+        XCTAssertFalse(duplicate?.isCompleted ?? true)
+        XCTAssertNil(duplicate?.completedAt)
+        XCTAssertEqual(store.tasks.count, 2)
+    }
+
     func testMovingUnfinishedPreservesHistoryAndIsIdempotent() {
         let fixture = makeFixtureURL()
         defer { try? FileManager.default.removeItem(at: fixture.deletingLastPathComponent()) }

@@ -18,7 +18,7 @@ struct TaskEditorView: View {
     @State private var draft: TaskEditorDraft
 
     private let calendar = Calendar.autoupdatingCurrent
-    private let durations = [15, 30, 45, 60, 90, 120, 180, 240, 360]
+    private let durations = [15, 30, 60, 120, 180]
     private let colors = ["5B7CFA", "8B5CF6", "EC4899", "F97316", "EAB308", "10B981", "0891B2"]
 
     init(route: TaskEditorRoute) {
@@ -86,11 +86,7 @@ struct TaskEditorView: View {
                 Section("When") {
                     DatePicker("Date", selection: $draft.scheduledDay, displayedComponents: .date)
                     DatePicker("Start", selection: $draft.startTime, displayedComponents: .hourAndMinute)
-                    Picker("Duration", selection: $draft.durationMinutes) {
-                        ForEach(durations, id: \.self) { minutes in
-                            Text(durationText(minutes: minutes)).tag(minutes)
-                        }
-                    }
+                    durationSelector
                 }
             }
             .formStyle(.grouped)
@@ -130,6 +126,42 @@ struct TaskEditorView: View {
                 colorSelector(availableWidth: geometry.size.width)
             }
             .frame(height: 25)
+        }
+    }
+
+    private var durationSelector: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Duration")
+
+            HStack(spacing: 6) {
+                ForEach(durations, id: \.self) { minutes in
+                    let isSelected = draft.durationMinutes == minutes
+                    Button {
+                        draft.durationMinutes = minutes
+                    } label: {
+                        Text(durationText(minutes: minutes))
+                            .font(.callout.weight(.medium))
+                            .foregroundStyle(isSelected ? Color.white : Color.primary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 6)
+                            .background {
+                                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                    .fill(isSelected ? AppTheme.accent : AppTheme.subtle)
+                            }
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                    .stroke(
+                                        isSelected ? AppTheme.accent : AppTheme.line,
+                                        lineWidth: 1
+                                    )
+                            }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(durationText(minutes: minutes))
+                    .accessibilityAddTraits(isSelected ? .isSelected : [])
+                    .accessibilityIdentifier("task-duration-\(minutes)-button")
+                }
+            }
         }
     }
 

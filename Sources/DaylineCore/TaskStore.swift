@@ -76,6 +76,19 @@ public final class TaskStore {
     }
 
     @discardableResult
+    public func duplicateTask(id: UUID) -> DayTask? {
+        guard let source = tasks.first(where: { $0.id == id }), !source.isMoved else { return nil }
+        return addTask(
+            title: source.title,
+            notes: source.notes,
+            scheduledDay: source.scheduledDay,
+            startMinutes: source.startMinutes,
+            durationMinutes: source.durationMinutes,
+            colorHex: source.colorHex
+        )
+    }
+
+    @discardableResult
     public func moveTask(id: UUID, to requestedStartMinutes: Int) -> Int? {
         guard let index = tasks.firstIndex(where: { $0.id == id }), !tasks[index].isMoved else { return nil }
         let task = tasks[index]

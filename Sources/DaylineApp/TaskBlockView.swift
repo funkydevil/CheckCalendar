@@ -6,6 +6,7 @@ struct TaskBlockView: View {
     let moveRange: ClosedRange<CGFloat>
     let onToggle: () -> Void
     let onEdit: () -> Void
+    let onDuplicate: () -> Void
     let onDelete: () -> Void
     let onMoveEnded: (CGFloat) -> Void
     let onTopResizeChanged: (CGFloat) -> Void
@@ -17,6 +18,13 @@ struct TaskBlockView: View {
     @State private var didDrag = false
     @State private var isDragging = false
     @State private var moveTranslation: CGFloat = 0
+    @State private var hoveredResizeEdge: ResizeEdge?
+    @State private var activeResizeEdge: ResizeEdge?
+
+    private enum ResizeEdge {
+        case top
+        case bottom
+    }
 
     var body: some View {
         let color = Color(hex: task.colorHex)
@@ -48,6 +56,7 @@ struct TaskBlockView: View {
             if !task.isMoved {
                 Button("Edit", systemImage: "pencil", action: onEdit)
                 Button(task.isCompleted ? "Mark Incomplete" : "Mark Complete", systemImage: statusIcon, action: onToggle)
+                Button("Duplicate", systemImage: "doc.on.doc", action: onDuplicate)
                 Divider()
             }
             Button("Delete", systemImage: "trash", role: .destructive, action: onDelete)
@@ -73,6 +82,8 @@ struct TaskBlockView: View {
                 Image(systemName: statusIcon)
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(statusColor(base: color))
+                    .frame(width: 18)
+                    .frame(maxHeight: .infinity)
             }
             .buttonStyle(.plain)
             .disabled(task.isMoved)
@@ -135,10 +146,15 @@ struct TaskBlockView: View {
 
     private var topResizeHandle: some View {
         Color.clear
-            .frame(height: 8)
+            .frame(height: resizeHandleHeight)
             .contentShape(Rectangle())
+            .overlay(alignment: .top) {
+                resizeHighlight(for: .top)
+            }
             .gesture(topResizeGesture)
             .disabled(task.isMoved)
+            .padding(.leading, resizeHandleLeadingInset)
+            .onHover { updateHover($0, edge: .top) }
             .help("Drag the top edge to change the start time")
             .accessibilityLabel("Change task start time")
             .accessibilityIdentifier("task-resize-top-handle-\(task.id.uuidString)")
@@ -146,10 +162,15 @@ struct TaskBlockView: View {
 
     private var bottomResizeHandle: some View {
         Color.clear
-            .frame(height: 8)
+            .frame(height: resizeHandleHeight)
             .contentShape(Rectangle())
+            .overlay(alignment: .bottom) {
+                resizeHighlight(for: .bottom)
+            }
             .gesture(bottomResizeGesture)
             .disabled(task.isMoved)
+            .padding(.leading, resizeHandleLeadingInset)
+            .onHover { updateHover($0, edge: .bottom) }
             .help("Drag the bottom edge to change the end time")
             .accessibilityLabel("Change task end time")
             .accessibilityIdentifier("task-resize-bottom-handle-\(task.id.uuidString)")
@@ -159,14 +180,10 @@ struct TaskBlockView: View {
         RoundedRectangle(cornerRadius: 10, style: .continuous)
             .fill(color.opacity(task.isCompleted || task.isMoved ? 0.09 : 0.16))
             .overlay(alignment: .leading) {
-                UnevenRoundedRectangle(
-                    topLeadingRadius: 10,
-                    bottomLeadingRadius: 10,
-                    bottomTrailingRadius: 0,
-                    topTrailingRadius: 0
-                )
+                Capsule(style: .continuous)
                 .fill(color.opacity(task.isMoved ? 0.35 : 0.9))
                 .frame(width: 4)
+                .padding(.vertical, 3)
             }
             .overlay {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -196,11 +213,13 @@ struct TaskBlockView: View {
             .onChanged { value in
                 guard !task.isMoved else { return }
                 didDrag = true
+                activeResizeEdge = .top
                 onTopResizeChanged(value.translation.height)
             }
             .onEnded { value in
                 guard !task.isMoved else { return }
                 onTopResizeEnded(value.translation.height)
+                activeResizeEdge = nil
                 resetDragFlag()
             }
     }
@@ -210,11 +229,13 @@ struct TaskBlockView: View {
             .onChanged { value in
                 guard !task.isMoved else { return }
                 didDrag = true
+                activeResizeEdge = .bottom
                 onBottomResizeChanged(value.translation.height)
             }
             .onEnded { value in
                 guard !task.isMoved else { return }
                 onBottomResizeEnded(value.translation.height)
+                activeResizeEdge = nil
                 resetDragFlag()
             }
     }
@@ -227,6 +248,33 @@ struct TaskBlockView: View {
 
     private var clampedMoveTranslation: CGFloat {
         min(max(moveTranslation, moveRange.lowerBound), moveRange.upperBound)
+    }
+
+    private var resizeHandleHeight: CGFloat {
+        isCompact ? 5 : 8
+    }
+
+    private var resizeHandleLeadingInset: CGFloat {
+        isCompact ? 32 : 0
+    }
+
+    private func resizeHighlight(for edge: ResizeEdge) -> some View {
+        Capsule(style: .continuous)
+            .fill(Color(hex: task.colorHex).opacity(0.95))
+            .frame(height: 2)
+            .padding(.horizontal, 4)
+            .opacity(hoveredResizeEdge == edge || activeResizeEdge == edge ? 1 : 0)
+            .animation(.easeOut(duration: 0.12), value: hoveredResizeEdge)
+            .allowsHitTesting(false)
+    }
+
+    private func updateHover(_ isHovering: Bool, edge: ResizeEdge) {
+        guard !task.isMoved else { return }
+        if isHovering {
+            hoveredResizeEdge = edge
+        } else if hoveredResizeEdge == edge {
+            hoveredResizeEdge = nil
+        }
     }
 
     private var statusIcon: String {
