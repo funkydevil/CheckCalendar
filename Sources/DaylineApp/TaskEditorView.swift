@@ -25,7 +25,7 @@ struct TaskEditorView: View {
         self.route = route
         let calendar = Calendar.autoupdatingCurrent
         switch route {
-        case .create(let date, let startMinutes, _):
+        case .create(let date, let startMinutes, let durationMinutes, _):
             let day = calendar.startOfDay(for: date)
             let time = calendar.date(byAdding: .minute, value: startMinutes, to: day) ?? day
             _draft = State(initialValue: TaskEditorDraft(
@@ -33,7 +33,7 @@ struct TaskEditorView: View {
                 notes: "",
                 scheduledDay: day,
                 startTime: time,
-                durationMinutes: 60,
+                durationMinutes: min(durationMinutes, 1_440 - startMinutes),
                 colorHex: "5B7CFA"
             ))
         case .edit(let task):
@@ -62,7 +62,7 @@ struct TaskEditorView: View {
 
             Form {
                 Section {
-                    TextField("", text: $draft.title)
+                    TextField("Task name", text: $draft.title, prompt: Text("What would you like to do?"))
                         .labelsHidden()
                         .textFieldStyle(.roundedBorder)
                         .focused($titleIsFocused)
@@ -70,6 +70,7 @@ struct TaskEditorView: View {
                         .accessibilityIdentifier("task-title-field")
                         .frame(maxWidth: .infinity)
                     TextEditor(text: $draft.notes)
+                        .accessibilityLabel("Note (optional)")
                         .frame(minHeight: 54)
                         .overlay(alignment: .topLeading) {
                             if draft.notes.isEmpty {
@@ -113,7 +114,14 @@ struct TaskEditorView: View {
             }
             .padding(16)
         }
-        .frame(width: 460, height: 500)
+        .frame(width: 460, height: 540)
+        .onChange(of: draft.startTime) {
+            let components = calendar.dateComponents([.hour, .minute], from: draft.startTime)
+            if (components.hour ?? 0) * 60 + (components.minute ?? 0) > 1_425 {
+                draft.startTime = calendar.date(bySettingHour: 23, minute: 45, second: 0, of: draft.startTime) ?? draft.startTime
+            }
+            draft.durationMinutes = min(draft.durationMinutes, maximumDuration)
+        }
         .onAppear { titleIsFocused = true }
     }
 
@@ -131,7 +139,16 @@ struct TaskEditorView: View {
 
     private var durationSelector: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Duration")
+            HStack {
+                Text("Duration")
+                Spacer()
+                Text(durationText(minutes: draft.durationMinutes))
+                    .monospacedDigit()
+                Stepper("Duration", value: $draft.durationMinutes, in: 15...maximumDuration, step: 15)
+                    .labelsHidden()
+                    .fixedSize()
+                    .accessibilityIdentifier("task-duration-stepper")
+            }
 
             HStack(spacing: 6) {
                 ForEach(durations, id: \.self) { minutes in
@@ -157,13 +174,26 @@ struct TaskEditorView: View {
                             }
                     }
                     .buttonStyle(.plain)
+                    .disabled(minutes > maximumDuration)
                     .accessibilityLabel(durationText(minutes: minutes))
                     .accessibilityAddTraits(isSelected ? .isSelected : [])
                     .accessibilityIdentifier("task-duration-\(minutes)-button")
                 }
             }
+            Text("Ends at \(timeText(minutes: startMinutes + draft.durationMinutes))")
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("task-end-time")
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
+
+    private var startMinutes: Int {
+        let components = calendar.dateComponents([.hour, .minute], from: draft.startTime)
+        return min((components.hour ?? 0) * 60 + (components.minute ?? 0), 1_425)
+    }
+
+    private var maximumDuration: Int { 1_440 - startMinutes }
 
     private func colorSelector(availableWidth: CGFloat) -> some View {
         let colorCount = CGFloat(colors.count)
@@ -198,11 +228,23 @@ struct TaskEditorView: View {
                         }
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Task color")
+                .accessibilityLabel("Task color: \(colorName(hex))")
                 .accessibilityValue(draft.colorHex == hex ? "Selected" : "Not selected")
             }
         }
         .frame(maxWidth: .infinity, alignment: .trailing)
+    }
+
+    private func colorName(_ hex: String) -> String {
+        switch hex {
+        case "5B7CFA": "Blue"
+        case "8B5CF6": "Purple"
+        case "EC4899": "Pink"
+        case "F97316": "Orange"
+        case "EAB308": "Yellow"
+        case "10B981": "Green"
+        default: "Teal"
+        }
     }
 
     private var isEditing: Bool {
@@ -216,9 +258,6 @@ struct TaskEditorView: View {
 
     private func save() {
         guard !trimmedTitle.isEmpty else { return }
-        let components = calendar.dateComponents([.hour, .minute], from: draft.startTime)
-        let startMinutes = (components.hour ?? 9) * 60 + (components.minute ?? 0)
-
         switch route {
         case .create:
             store.addTask(

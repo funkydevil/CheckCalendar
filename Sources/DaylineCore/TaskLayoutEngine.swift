@@ -75,3 +75,24 @@ public enum TaskLayoutEngine {
         return placements
     }
 }
+
+/// A click starts an hour-long draft; a vertical drag selects quarter-hour boundaries.
+public struct TimelineTaskSelection: Equatable, Sendable {
+    public let startMinutes: Int
+    public let durationMinutes: Int
+    public var endMinutes: Int { startMinutes + durationMinutes }
+
+    public init(startY: Double, endY: Double, hourHeight: Double) {
+        let scale = max(hourHeight, 1)
+        let anchor = min(max(Int(floor(startY / scale * 60 / 15)) * 15, 0), 1_425)
+        if abs(endY - startY) < 5 {
+            startMinutes = anchor
+            durationMinutes = min(60, 1_440 - anchor)
+        } else {
+            let endpoint = min(max(Int((endY / scale * 60 / 15).rounded()) * 15, 0), 1_440)
+            let dragAnchor = min(max(Int((startY / scale * 60 / 15).rounded()) * 15, 0), 1_440)
+            startMinutes = min(dragAnchor, endpoint, 1_425)
+            durationMinutes = max(15, max(dragAnchor, endpoint) - startMinutes)
+        }
+    }
+}

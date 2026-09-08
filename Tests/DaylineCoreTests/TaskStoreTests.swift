@@ -3,6 +3,56 @@ import XCTest
 
 @MainActor
 final class TaskStoreTests: XCTestCase {
+    func testTimelineClickUsesQuarterHourAndClampsAtMidnight() {
+        XCTAssertEqual(TimelineTaskSelection(startY: 9.12 * 74, endY: 9.12 * 74 + 2, hourHeight: 74).startMinutes, 540)
+        let late = TimelineTaskSelection(startY: 23.9 * 74, endY: 23.9 * 74, hourHeight: 74)
+        XCTAssertEqual(late.startMinutes, 1_425)
+        XCTAssertEqual(late.durationMinutes, 15)
+        XCTAssertEqual(late.endMinutes, 1_440)
+    }
+
+    func testTimelineDragSelectsSameIntervalInBothDirections() {
+        let down = TimelineTaskSelection(startY: 9 * 74, endY: 10.25 * 74, hourHeight: 74)
+        let up = TimelineTaskSelection(startY: 10.25 * 74, endY: 9 * 74, hourHeight: 74)
+        XCTAssertEqual(down, up)
+        XCTAssertEqual(down.startMinutes, 540)
+        XCTAssertEqual(down.durationMinutes, 75)
+    }
+
+    func testTimelineDragUsesSymmetricSnappingBetweenQuarterHours() {
+        let from = (9.0 + 14.0 / 60) * 74
+        let to = (10.0 + 14.0 / 60) * 74
+        let down = TimelineTaskSelection(startY: from, endY: to, hourHeight: 74)
+        let up = TimelineTaskSelection(startY: to, endY: from, hourHeight: 74)
+        XCTAssertEqual(down, up)
+        XCTAssertEqual(down.startMinutes, 555)
+        XCTAssertEqual(down.durationMinutes, 60)
+    }
+
+    func testTimelineDragClampsToDayAndHasMinimumDuration() {
+        let fullDay = TimelineTaskSelection(startY: -80, endY: 25 * 74, hourHeight: 74)
+        XCTAssertEqual(fullDay.startMinutes, 0)
+        XCTAssertEqual(fullDay.durationMinutes, 1_440)
+        let short = TimelineTaskSelection(startY: 9 * 74, endY: 9 * 74 + 6, hourHeight: 74)
+        XCTAssertEqual(short.durationMinutes, 15)
+    }
+
+    func testSelectedDurationSurvivesEditorRouteAndPersistence() {
+        let fixture = makeFixtureURL()
+        defer { try? FileManager.default.removeItem(at: fixture.deletingLastPathComponent()) }
+        let day = makeDate(year: 2026, month: 9, day: 8)
+        let selection = TimelineTaskSelection(startY: 9 * 74, endY: 10.25 * 74, hourHeight: 74)
+        let route = TaskEditorRoute.new(date: day, startMinutes: selection.startMinutes, durationMinutes: selection.durationMinutes)
+        guard case .create(let date, let start, let duration, _) = route else {
+            return XCTFail("Expected create route")
+        }
+        let store = TaskStore(fileURL: fixture, calendar: utcCalendar)
+        store.addTask(title: "Selected interval", scheduledDay: date, startMinutes: start, durationMinutes: duration, colorHex: "5B7CFA")
+        let reloaded = TaskStore(fileURL: fixture, calendar: utcCalendar)
+        XCTAssertEqual(reloaded.tasks.first?.startMinutes, 540)
+        XCTAssertEqual(reloaded.tasks.first?.durationMinutes, 75)
+    }
+
     func testPersistsAndReloadsCompletion() throws {
         let fixture = makeFixtureURL()
         defer { try? FileManager.default.removeItem(at: fixture.deletingLastPathComponent()) }

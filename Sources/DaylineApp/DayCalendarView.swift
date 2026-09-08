@@ -3,7 +3,7 @@ import SwiftUI
 struct DayCalendarView: View {
     @Environment(TaskStore.self) private var store
     @Binding var selectedDate: Date
-    let onAdd: (Int) -> Void
+    let onAdd: (Int, Int) -> Void
     let onEdit: (DayTask) -> Void
 
     @State private var showMoveConfirmation = false
@@ -48,6 +48,9 @@ struct DayCalendarView: View {
             )
         }
         .background(AppTheme.canvas)
+        .onReceive(NotificationCenter.default.publisher(for: .newDaylineTask)) { _ in
+            onAdd(defaultStartMinute, 60)
+        }
         .alert("Move to Tomorrow?", isPresented: $showMoveConfirmation) {
             Button("Cancel", role: .cancel) { }
             Button("Move \(unfinishedCount)") { moveUnfinished() }
@@ -116,6 +119,7 @@ struct DayCalendarView: View {
                         Image(systemName: "chevron.left")
                     }
                     .help("Previous day")
+                    .accessibilityLabel("Previous day")
 
                     Button {
                         selectedDate = calendar.startOfDay(for: .now)
@@ -131,6 +135,7 @@ struct DayCalendarView: View {
                         Image(systemName: "chevron.right")
                     }
                     .help("Next day")
+                    .accessibilityLabel("Next day")
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
@@ -171,7 +176,7 @@ struct DayCalendarView: View {
                 .accessibilityIdentifier("move-unfinished-button")
 
                 Button {
-                    onAdd(defaultStartMinute)
+                    onAdd(defaultStartMinute, 60)
                 } label: {
                     Image(systemName: "plus")
                         .font(.system(size: 16, weight: .semibold))
@@ -263,7 +268,7 @@ struct DayCalendarView: View {
 private struct TimelineViewContent: View {
     let date: Date
     let tasks: [DayTask]
-    let onAdd: (Int) -> Void
+    let onAdd: (Int, Int) -> Void
     let onEdit: (DayTask) -> Void
     let onToggle: (UUID) -> Void
     let onDuplicate: (UUID) -> Void
@@ -274,6 +279,7 @@ private struct TimelineViewContent: View {
 
     @State private var resizingTaskID: UUID?
     @State private var resizePlan: TaskResizePlan?
+    @GestureState private var creationDrag: DragGesture.Value?
 
     private let hourHeight: CGFloat = 74
     private let labelWidth: CGFloat = 64
@@ -285,10 +291,21 @@ private struct TimelineViewContent: View {
                 ScrollView(.vertical) {
                     ZStack(alignment: .topLeading) {
                         timelineGrid
+                        creationSurface(totalWidth: geometry.size.width)
                         taskBlocks(totalWidth: geometry.size.width)
+                        creationPreview(totalWidth: geometry.size.width)
                         currentTimeLine(totalWidth: geometry.size.width)
                     }
                     .frame(width: geometry.size.width, height: hourHeight * 24)
+                }
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    Text("Click an empty time to add a task · Drag to choose duration · ⌘N")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 8)
+                        .background(.bar)
                 }
                 .onAppear {
                     proxy.scrollTo(calendar.isDateInToday(date) ? currentHourAnchor : 7, anchor: .top)
@@ -318,11 +335,6 @@ private struct TimelineViewContent: View {
             }
         }
         .padding(.trailing, 18)
-        .contentShape(Rectangle())
-        .onTapGesture(count: 2, coordinateSpace: .local) { point in
-            let minute = min(max(Int(point.y / hourHeight * 60), 0), 1_439)
-            onAdd((minute / 15) * 15)
-        }
     }
 
     @ViewBuilder
@@ -398,6 +410,59 @@ private struct TimelineViewContent: View {
         return Int((rawMinutes / 15).rounded()) * 15
     }
 
+    private func creationSurface(totalWidth: CGFloat) -> some View {
+        Color.clear
+            .frame(width: max(totalWidth - labelWidth - 32, 0), height: hourHeight * 24)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                    .updating($creationDrag) { value, state, _ in state = value }
+                    .onEnded { value in
+                        let selection = creationSelection(for: value)
+                        onAdd(selection.startMinutes, selection.durationMinutes)
+                    }
+            )
+            .offset(x: labelWidth + 14)
+            .help("Click to add a task; drag to choose its duration")
+            .accessibilityLabel("Add a task to the timeline")
+            .accessibilityAction { onAdd(9 * 60, 60) }
+    }
+
+    private func creationSelection(for value: DragGesture.Value) -> TimelineTaskSelection {
+        TimelineTaskSelection(
+            startY: Double(value.startLocation.y),
+            endY: Double(value.location.y),
+            hourHeight: Double(hourHeight)
+        )
+    }
+
+    @ViewBuilder
+    private func creationPreview(totalWidth: CGFloat) -> some View {
+        if let creationDrag {
+            let selection = creationSelection(for: creationDrag)
+            let height = CGFloat(selection.durationMinutes) / 60 * hourHeight
+            RoundedRectangle(cornerRadius: 6)
+                .fill(AppTheme.accent.opacity(0.15))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 6)
+                        .strokeBorder(AppTheme.accent, style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+                }
+                .overlay(alignment: .topLeading) {
+                    Text("\(timeText(minutes: selection.startMinutes))–\(timeText(minutes: selection.endMinutes)) · \(durationText(minutes: selection.durationMinutes))")
+                        .font(.caption.weight(.semibold).monospacedDigit())
+                        .foregroundStyle(AppTheme.accent)
+                        .lineLimit(1)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, height < 30 ? 1 : 6)
+                }
+                .frame(width: max(totalWidth - labelWidth - 38, 0), height: max(height - 2, 1))
+                .offset(x: labelWidth + 14, y: CGFloat(selection.startMinutes) / 60 * hourHeight + 1)
+                .zIndex(20)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
+    }
+
     private func clearResizePreview() {
         resizingTaskID = nil
         resizePlan = nil
@@ -437,6 +502,7 @@ private struct TimelineViewContent: View {
                 .frame(width: max(totalWidth - labelWidth - 14, 0))
                 .offset(x: labelWidth + 10, y: y - 4)
                 .accessibilityHidden(true)
+                .allowsHitTesting(false)
             }
         }
     }

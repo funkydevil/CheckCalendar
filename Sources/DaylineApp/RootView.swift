@@ -1,18 +1,18 @@
 import SwiftUI
 
 enum TaskEditorRoute: Identifiable {
-    case create(date: Date, startMinutes: Int, token: UUID)
+    case create(date: Date, startMinutes: Int, durationMinutes: Int, token: UUID)
     case edit(task: DayTask)
 
     var id: String {
         switch self {
-        case .create(_, _, let token): "create-\(token.uuidString)"
+        case .create(_, _, _, let token): "create-\(token.uuidString)"
         case .edit(let task): "edit-\(task.id.uuidString)"
         }
     }
 
-    static func new(date: Date, startMinutes: Int = 9 * 60) -> TaskEditorRoute {
-        .create(date: date, startMinutes: startMinutes, token: UUID())
+    static func new(date: Date, startMinutes: Int = 9 * 60, durationMinutes: Int = 60) -> TaskEditorRoute {
+        .create(date: date, startMinutes: startMinutes, durationMinutes: durationMinutes, token: UUID())
     }
 }
 
@@ -24,7 +24,9 @@ struct RootView: View {
     var body: some View {
         DayCalendarView(
             selectedDate: $selectedDate,
-            onAdd: { minute in editorRoute = .new(date: selectedDate, startMinutes: minute) },
+            onAdd: { minute, duration in
+                editorRoute = .new(date: selectedDate, startMinutes: minute, durationMinutes: duration)
+            },
             onEdit: { editorRoute = .edit(task: $0) }
         )
         .tint(AppTheme.accent)
@@ -44,9 +46,6 @@ struct RootView: View {
             Button("OK") { store.clearPersistenceError() }
         } message: {
             Text(store.persistenceError ?? "Unknown error")
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .newDaylineTask)) { _ in
-            editorRoute = .new(date: selectedDate)
         }
     }
 }

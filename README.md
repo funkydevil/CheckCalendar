@@ -11,8 +11,9 @@ A native calendar checklist for macOS. Tasks appear on a 24-hour timeline, their
 - Daily history with progress summaries.
 - Move all unfinished tasks to tomorrow without losing the original history entry.
 - Local storage in `Application Support/Dayline/tasks.json`.
-- Create a task by double-clicking the timeline or pressing `⌘N`.
-- Tasks created with the toolbar button automatically start after the day's final task.
+- Create a task by clicking an empty time or pressing `⌘N`; drag an empty area to select a duration in 15-minute increments.
+- Scroll with the mouse wheel, trackpad, or scrollbar.
+- Tasks created with the toolbar button or `⌘N` automatically start after the day's final task.
 
 ## Open and Run
 
